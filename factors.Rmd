@@ -1,47 +1,62 @@
-# Factors
+# Factors | 因子
 
-## Introduction
+## Introduction | 简介
 
 In R, factors are used to work with categorical variables, variables that have a fixed and known set of possible values. They are also useful when you want to display character vectors in a non-alphabetical order.
 
+因子在 R 中用于处理分类变量。分类变量是在固定的已知集合中取值的变量。当想要以非字母表顺序显示字符向量时，也可以使用分类变量。
+
 Historically, factors were much easier to work with than characters. As a result, many of the functions in base R automatically convert characters to factors. This means that factors often crop up in places where they're not actually helpful. Fortunately, you don't need to worry about that in the tidyverse, and can focus on situations where factors are genuinely useful.
 
-### Prerequisites
+从历史上看，因子远比字符串更容易处理。因此，R 基础包中的很多函数都自动将字符串转换为因子。这意味着因子经常出现在并不真正适合它们的地方。好在你不用担心tidyverse 中会出现这种问题，可以将注意力集中于因子能够真正发挥作用的问题。
+
+### Prerequisites | 准备工作
 
 To work with factors, we'll use the __forcats__ package, which is part of the core tidyverse. It provides tools for dealing with **cat**egorical variables (and it's an anagram of factors!) using a wide range of helpers for working with factors. 
 
+我们将使用 forcats 包来处理因子，这个包提供了能够处理分类变量（其实就是因子的另一种说法）的工具，其中还包括了处理因子的大量辅助函数。因为 forcats 不是 tidyverse 的核心 R 包，所以需要手动加载。
+
 ```{r setup, message = FALSE}
 library(tidyverse)
+library(forcats)
 ```
 
-### Learning more
+### Learning more | 更多学习资源
 
 If you want to learn more about factors, I recommend reading Amelia McNamara and Nicholas Horton’s paper, [_Wrangling categorical data in R_](https://peerj.com/preprints/3163/). This paper lays out some of the history discussed in [_stringsAsFactors: An unauthorized biography_](http://simplystatistics.org/2015/07/24/stringsasfactors-an-unauthorized-biography/) and [_stringsAsFactors = \<sigh\>_](http://notstatschat.tumblr.com/post/124987394001/stringsasfactors-sigh), and compares the tidy approaches to categorical data outlined in this book with base R methods. An early version of the paper help motivate and scope the forcats package; thanks Amelia & Nick!
 
-## Creating factors
 
-Imagine that you have a variable that records month:
+如果想要了解更多有关因子的背景知识，我们推荐你阅读一下 Roger Peng 的文章“An unauthorized biography”，以及 Thomas Lumley 的文章“stringsAsFactors = <sigh>”。
+
+
+## Creating factors | 创建因子
+
+Imagine that you have a variable that records month: 假设我们想要创建一个记录月份的变量：
 
 ```{r}
 x1 <- c("Dec", "Apr", "Jan", "Mar")
 ```
 
-Using a string to record this variable has two problems:
+Using a string to record this variable has two problems: 使用字符串来记录月份有两个问题。
 
 1.  There are only twelve possible months, and there's nothing saving you
     from typos:
+    
+    月份只有 12 个取值，如果输入错误，那么代码不会有任何反应。
      
     ```{r}
     x2 <- c("Dec", "Apr", "Jam", "Mar")
     ```
     
-1.  It doesn't sort in a useful way:
+1.  It doesn't sort in a useful way: 其对月份的排序没有意义。
 
     ```{r}
     sort(x1)
     ```
 
 You can fix both of these problems with a factor. To create a factor you must start by creating a list of the valid __levels__:
+
+你可以通过使用因子来解决以上两个问题。要想创建一个因子，必须先创建有效水平的一个列表：
 
 ```{r}
 month_levels <- c(
@@ -50,7 +65,7 @@ month_levels <- c(
 )
 ```
 
-Now you can create a factor:
+Now you can create a factor:  现在你可以创建因子了：
 
 ```{r}
 y1 <- factor(x1, levels = month_levels)
@@ -58,26 +73,29 @@ y1
 sort(y1)
 ```
 
-And any values not in the set will be silently converted to NA:
+And any values not in the set will be silently converted to NA: 不在有效水平集合内的所有值都会自动转换为 NA：
 
 ```{r}
 y2 <- factor(x2, levels = month_levels)
 y2
 ```
 
-If you want a warning, you can use `readr::parse_factor()`:
+If you want a warning, you can use `readr::parse_factor()`: 如果想要显示错误信息，那么你可以使用 readr::parse_factor() 函数：
 
 ```{r}
 y2 <- parse_factor(x2, levels = month_levels)
 ```
 
 If you omit the levels, they'll be taken from the data in alphabetical order:
+如果省略了定义水平的这个步骤，那么会将按字母顺序排序的数据作为水平：
 
 ```{r}
 factor(x1)
 ```
 
 Sometimes you'd prefer that the order of the levels match the order of the first appearance in the data. You can do that when creating the factor by setting levels to `unique(x)`, or after the fact, with `fct_inorder()`:
+
+有时你会想让因子的顺序与初始数据的顺序保持一致。在创建因子时，将水平设置为 unique(x)，或者在创建因子后再对其使用 fct_inorder() 函数，就可以达到这个目的：
 
 ```{r}
 f1 <- factor(x1, levels = unique(x1))
@@ -88,14 +106,17 @@ f2
 ```
 
 If you ever need to access the set of valid levels directly, you can do so with `levels()`:
+如果想要直接访问因子的有效水平集合，那么可以使用 levels() 函数：
 
 ```{r}
 levels(f2)
 ```
 
-## General Social Survey
+## General Social Survey | 综合社会调查
 
 For the rest of this chapter, we're going to focus on `forcats::gss_cat`. It's a sample of data from the [General Social Survey](http://gss.norc.org), which is a long-running US survey conducted by the independent research organization NORC at the University of Chicago. The survey has thousands of questions, so in `gss_cat` I've selected a handful that will illustrate some common challenges you'll encounter when working with factors.
+
+本章后面的内容将重点讨论 forcats::gss_cat 数据集，该数据集是综合社会调查数据的一份抽样，综合社会调查是美国芝加哥大学的独立研究组织 NORC 进行的一项长期美国社会调查。这项调查包括几千个问题，我们挑选了一些变量放在 gss_cat 数据集中，它们可以说明处理因子时经常遇到的一些问题：
 
 ```{r}
 gss_cat
@@ -103,14 +124,18 @@ gss_cat
 
 (Remember, since this dataset is provided by a package, you can get more information about the variables with `?gss_cat`.)
 
+（记住，因为这个数据集是由一个 R 包提供的，所以你可以使用 ?gss_cat 获取关于变量的更多信息。）
+
 When factors are stored in a tibble, you can't see their levels so easily. One way to see them is with `count()`:
+
+当因子保存在 tibble 中时，其水平不是很容易看到的。查看因子水平的一种方法是使用 count() 函数：
 
 ```{r}
 gss_cat %>%
   count(race)
 ```
 
-Or with a bar chart:
+Or with a bar chart: 或者使用条形图：
 
 ```{r}
 ggplot(gss_cat, aes(race)) +
@@ -118,6 +143,7 @@ ggplot(gss_cat, aes(race)) +
 ```
 
 By default, ggplot2 will drop levels that don't have any values. You can force them to display with:
+默认情况下，ggplot2 会丢弃没有任何数据的那些水平，你可以使用以下代码来强制显示这些水平：
 
 ```{r}
 ggplot(gss_cat, aes(race)) +
@@ -127,20 +153,24 @@ ggplot(gss_cat, aes(race)) +
 
 These levels represent valid values that simply did not occur in this dataset. Unfortunately, dplyr doesn't yet have a `drop` option, but it will in the future.
 
+这些水平表示的也是有效值，只是没有出现在这个数据集中。遗憾的是，dplyr 中还没有 drop 这个选项，但很快就会有了。
+
 When working with factors, the two most common operations are changing the order of the levels, and changing the values of the levels. Those operations are described in the sections below.
 
-### Exercise
+在使用因子时，最常用的两种操作是修改水平的顺序和水平的值。
+
+### Exercise | 练习
 
 1.  Explore the distribution of `rincome` (reported income). What makes the
     default bar chart hard to understand? How could you improve the plot?
-
+    
 1.  What is the most common `relig` in this survey? What's the most
     common `partyid`?
-
+    
 1.  Which `relig` does `denom` (denomination) apply to? How can you find
     out with a table? How can you find out with a visualisation?
 
-## Modifying factor order
+## Modifying factor order | 修改因子顺序
 
 It's often useful to change the order of the factor levels in a visualisation. For example, imagine you want to explore the average number of hours spent watching TV per day across religions:
 
@@ -229,7 +259,7 @@ gss_cat %>%
     geom_bar()
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  There are some suspiciously high numbers in `tvhours`. Is the mean a good
     summary?
@@ -240,15 +270,19 @@ gss_cat %>%
 1.  Why did moving "Not applicable" to the front of the levels move it to the
     bottom of the plot?
 
-## Modifying factor levels
+## Modifying factor levels | 修改因子水平
 
 More powerful than changing the orders of the levels is changing their values. This allows you to clarify labels for publication, and collapse levels for high-level displays. The most general and powerful tool is `fct_recode()`. It allows you to recode, or change, the value of each level. For example, take the `gss_cat$partyid`:
+
+比修改因子水平顺序更强大的操作是修改水平的值。修改水平不仅可以使得图形标签更美观清晰，以满足出版发行的要求，还可以将水平汇集成更高层次的显示。修改水平最常用、最强大的工具是 fct_recode() 函数，它可以对每个水平进行修改或重新编码。例如， 我们看一下 gss_cat$partyid：
 
 ```{r}
 gss_cat %>% count(partyid)
 ```
 
 The levels are terse and inconsistent. Let's tweak them to be longer and use a parallel construction.
+
+对水平的描述太过简单，而且不一致。我们将其修改为较为详细的排比结构：
 
 ```{r}
 gss_cat %>%
@@ -265,7 +299,10 @@ gss_cat %>%
 
 `fct_recode()` will leave levels that aren't explicitly mentioned as is, and will warn you if you accidentally refer to a level that doesn't exist.
 
+fct_recode() 会让没有明确提及的水平保持原样，如果不小心修改了一个不存在的水平， 那么它也会给出警告。
+
 To combine groups, you can assign multiple old levels to the same new level:
+你可以将多个原水平赋给同一个新水平，这样就可以合并原来的分类：
 
 ```{r}
 gss_cat %>%
@@ -285,7 +322,11 @@ gss_cat %>%
 
 You must use this technique with care: if you group together categories that are truly different you will end up with misleading results.
 
+使用这种操作时一定要小心：如果合并了原本不同的分类，那么就会产生误导性的结果。
+
 If you want to collapse a lot of levels, `fct_collapse()` is a useful variant of `fct_recode()`. For each new variable, you can provide a vector of old levels:
+
+如果想要合并多个水平，那么可以使用 fct_recode() 函数的变体 fct_collapse() 函数。对于每个新水平，你都可以提供一个包含原水平的向量：
 
 ```{r}
 gss_cat %>%
@@ -317,9 +358,13 @@ gss_cat %>%
   print(n = Inf)
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  How have the proportions of people identifying as Democrat, Republican, and
     Independent changed over time?
+    
+    美国民主党、共和党和中间派的人数比例是如何随时间而变化的？
 
 1.  How could you collapse `rincome` into a small set of categories?
+
+

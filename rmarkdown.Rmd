@@ -1,34 +1,56 @@
 # R Markdown
 
-## Introduction
+## Introduction | 简介
 
-R Markdown provides an unified authoring framework for data science, combining your code, its results, and your prose commentary. R Markdown documents are fully reproducible and support dozens of output formats, like PDFs, Word files, slideshows, and more. 
+R Markdown provides an unified authoring framework for data science, combining your code, its results, and your prose commentary. 
+
+R Markdown 为数据科学提供了一种统一的写作框架，可以集成代码、输出结果和文本注释。
+
+R Markdown documents are fully reproducible and support dozens of output formats, like PDFs, Word files, slideshows, and more. 
+
+R Markdown 文档是完全可重用的，并支持多种输出形式，包括 PDF、Word、幻灯片等。
 
 R Markdown files are designed to be used in three ways:
 
+R Markdown 文件的应用方式有 3 种。
+
 1.  For communicating to decision makers, who want to focus on the conclusions,
     not the code behind the analysis.
+    
+    • 与决策者沟通交流，这部分人关注的是最终结论，而不是分析背后的代码。
 
 1.  For collaborating with other data scientists (including future you!), who
     are interested in both your conclusions, and how you reached them (i.e.
     the code).
     
+    • 与其他数据科学家（包括未来的你）协作，这部分人关心的内容既包括最终结论，也包括得到结论的过程（也就是代码）。
+    
 1.  As an environment in which to _do_ data science, as a modern day lab 
     notebook where you can capture not only what you did, but also what you
     were thinking.
+    
+    • 作为开展数据科学工作的一种环境，它是一种现代化的实验室记录工具，不但可以记录你的实际工作，还可以记录你的思考过程。
 
 R Markdown integrates a number of R packages and external tools. This means that help is, by-and-large, not available through `?`. Instead, as you work through this chapter, and use R Markdown in the future, keep these resources close to hand:
 
+R Markdown 集成了一些 R 包和外部工具。这意味着基本上不能再使用 ? 获取帮助了。因此，当学习本章或未来使用 R Markdown 进行工作时，你最好将以下资料放在手边。
+
 *   R Markdown Cheat Sheet: _Help > Cheatsheets > R Markdown Cheat Sheet_,
+
+• R Markdown 速查表：在 RStudio IDE 中就可以找到，路径为 Help → Cheatsheets → R Markdown Cheat Sheet。
 
 *   R Markdown Reference Guide: _Help > Cheatsheets > R Markdown Reference 
     Guide_.
+    
+• R Markdown 用户指南：在 RStudio IDE 中就可以找到，路径为 Help → Cheatsheets → R Markdown Reference Guide。
 
 Both cheatsheets are also available at <https://rstudio.com/resources/cheatsheets/>.
 
-### Prerequisites
+### Prerequisites | 准备工作
 
 You need the __rmarkdown__ package, but you don't need to explicitly install it or load it, as RStudio automatically does both when needed.
+
+我们需要使用 rmarkdown 包，但不用显式地安装或加载这个包，因为 RStudio 可以在我们需要时自动完成这些工作。
 
 ```{r setup, include = FALSE}
 chunk <- "```"
@@ -36,9 +58,11 @@ inline <- function(x = "") paste0("`` `r ", x, "` ``")
 library(tidyverse)
 ```
 
-## R Markdown basics
+## R Markdown basics | R Markdown基础
 
 This is an R Markdown file, a plain text file that has the extension `.Rmd`:
+
+以下就是一个 R Markdown 文件，一个扩展名为 .Rmd 的纯文本文件：
 
 ```{r echo = FALSE, comment = ""}
 cat(htmltools::includeText("rmarkdown/diamond-sizes.Rmd"))
@@ -46,11 +70,17 @@ cat(htmltools::includeText("rmarkdown/diamond-sizes.Rmd"))
 
 It contains three important types of content:
 
-1.  An (optional) __YAML header__ surrounded by `---`s.
-1.  __Chunks__ of R code surrounded by ```` ``` ````.
-1.  Text mixed with simple text formatting like `# heading` and `_italics_`.
+这个文件包含了 3 种重要的内容类型。
+
+1.  An (optional) __YAML header__ surrounded by `---`s. 两个 --- 之间的（可选）YAML 文件头。
+
+1.  __Chunks__ of R code surrounded by ```` ``` ````. 两个 ``` 之间的 R 代码段。
+
+1.  Text mixed with simple text formatting like `# heading` and `_italics_`. 一些具有简单格式的文本，比如前面用 # 表示的文本标题，以及两个 _ 之间的斜体。
 
 When you open an `.Rmd`, you get a notebook interface where code and output are interleaved. You can run each code chunk by clicking the Run icon (it looks like a play button at the top of the chunk), or by pressing Cmd/Ctrl + Shift + Enter. RStudio executes the code and displays the results inline with the code:
+
+打开一个 .Rmd 文件后，就会进入笔记本界面，其中代码和代码结果可以交互显示。通过点击 Run 图标（位于代码段上方，类似播放按钮）或按组合键Ctrl+Shift+Enter，就可以运行每个代码段。RStudio 可以运行代码，并将运行结果显示在代码下面。
 
 ```{r, echo = FALSE, out.width = "75%"}
 knitr::include_graphics("rmarkdown/diamond-sizes-notebook.png")
@@ -58,11 +88,15 @@ knitr::include_graphics("rmarkdown/diamond-sizes-notebook.png")
 
 To produce a complete report containing all text, code, and results, click "Knit" or press Cmd/Ctrl + Shift + K.  You can also do this programmatically with `rmarkdown::render("1-example.Rmd")`. This will display the report in the viewer pane, and create a self-contained HTML file that you can share with others.
 
+如果想要生成包含所有文本、代码和输出的完整报告，可以点击 Knit 或按组合键Ctrl+Shift+K。还可以使用代码 rmarkdown::render("1-example.Rmd") 在程序中完成这个操作。报告会显示在查看器窗格中，并生成可以与他人分享的一个独立的 HTML 文件。
+
 ```{r, echo = FALSE, out.width = "75%"}
 knitr::include_graphics("rmarkdown/diamond-sizes-report.png")
 ```
 
 When you __knit__ the document, R Markdown sends the .Rmd file to __knitr__, http://yihui.name/knitr/, which executes all of the code chunks and creates a new markdown (.md) document which includes the code and its output. The markdown file generated by knitr is then processed by __pandoc__, <http://pandoc.org/>, which is responsible for creating the finished file. The advantage of this two step workflow is that you can create a very wide range of output formats, as you'll learn about in [R markdown formats].
+
+在生成文档时，R Markdown 先将 .Rmd 文件发送给 knitr，knitr 会执行所有代码段，并创建一个新的 Markdown 文件（.md），其中包含所有代码和输出。然后 knitr 生成的 Markdown文件再由 pandoc 进行处理，并生成最终文件。这种两阶段工作流的优点是可以创建多种输出格式，第 22 章将介绍这些格式。
 
 ```{r, echo = FALSE, out.width = "75%"}
 knitr::include_graphics("images/RMarkdownFlow.png")
@@ -70,33 +104,47 @@ knitr::include_graphics("images/RMarkdownFlow.png")
 
 To get started with your own `.Rmd` file, select *File > New File > R Markdown...* in the menubar. RStudio will launch a wizard that you can use to pre-populate your file with useful content that reminds you how the key features of R Markdown work. 
 
+如果想要创建自己的 .Rmd 文件，可以在菜单栏选择 File → New File → R Markdown…… RStudio 会启动一个向导程序，对文件预先填充一些有用的内容，并对如何使用 R Markdown 的核心功能作出提示。
+
 The following sections dive into the three components of an R Markdown document in more details: the markdown text, the code chunks, and the YAML header.
 
-### Exercises
+以下几节将详细介绍 R Markdown 文件的 3 个主要组成部分：Markdown 文本、代码段和YAML 文件头。
+
+### Exercises | 练习
 
 1.  Create a new notebook using _File > New File > R Notebook_. Read the 
     instructions. Practice running the chunks. Verify that you can modify
     the code, re-run it, and see modified output.
+    
+    使用 File → New File → R Notebook 创建一个新的 Notebook 文件。阅读操作指示，并实际运行代码段。确认你能够修改代码、重新运行代码，并检查修改后的运行结果。
     
 1.  Create a new R Markdown document with _File > New File > R Markdown..._
     Knit it by clicking the appropriate button. Knit it by using the 
     appropriate keyboard short cut. Verify that you can modify the
     input and see the output update.
     
+    使用 File → New File → R Markdown 创建一个新的 R Markdown 文件。使用正确的按钮生成这个文件。使用正确的组合键生成这个文件。确认你能够修改输入，并获得更新后的输出。
+    
 1.  Compare and contrast the R notebook and R markdown files you created
     above. How are the outputs similar? How are they different? How are
     the inputs similar? How are they different? What happens if you
     copy the YAML header from one to the other?
+    
+    比较并对比你在前面创建的 R Notebook 文件和 R Markdown 文件。它们的输出有什么相同之处？有什么不同之处？它们的输入有什么相同之处？有什么不同之处？如果将一个文件的 YAML 文件头复制到另一个文件中，会发生什么情况？
 
 1.  Create one new R Markdown document for each of the three built-in
     formats: HTML, PDF and Word. Knit each of the three documents.
     How does the output differ? How does the input differ? (You may need
     to install LaTeX in order to build the PDF output --- RStudio will
     prompt you if this is necessary.)
+    
+    对于 3 种内置格式 HTML、PDF 和Word，分别创建一个新的 R Markdown 文件，并生成这 3 种文件。这 3 种文件的输出有什么不同？输入有什么不同？（为了生成 PDF 输出， 需要安装 LaTex，RStudio 会在需要时提醒你。）
 
-## Text formatting with Markdown
+## Text formatting with Markdown | 使用Markdown格式化文本
 
 Prose in `.Rmd` files is written in Markdown, a lightweight set of conventions for formatting plain text files. Markdown is designed to be easy to read and easy to write. It is also very easy to learn. The guide below shows how to use Pandoc's Markdown, a slightly extended version of Markdown that R Markdown understands.
+
+.Rmd 文件中的文本是用 Markdown 语言写成的，Markdown 是用于格式化纯文本文件的一种轻量级语法，其设计思想就是使得文本既容易书写又容易阅读。Markdown 学习起来非常容易，以下指南给出了使用 Pandoc Markdown 的方法，这是 R Markdown 可以理解的Markdown 的一种扩展版本：
 
 ```{r, echo = FALSE, comment = ""}
 cat(readr::read_file("rmarkdown/markdown.Rmd"))
@@ -104,46 +152,64 @@ cat(readr::read_file("rmarkdown/markdown.Rmd"))
 
 The best way to learn these is simply to try them out. It will take a few days, but soon they will become second nature, and you won't need to think about them. If you forget, you can get to a handy reference sheet with *Help > Markdown Quick Reference*.
 
-### Exercises
+学习 Markdown 语法的最好方法就是练习。可能需要几天的时间，但你很快就能熟悉这种语法， 无须思考就可以熟练自如地使用。如果忘记了某种语法， 可以使用Help → Markdown Quick Reference 来获取帮助。
+
+### Exercises | 练习
 
 1.  Practice what you've learned by creating a brief CV. The title should be
     your name, and you should include headings for (at least) education or
     employment. Each of the sections should include a bulleted list of
     jobs/degrees. Highlight the year in bold.
     
-1.  Using the R Markdown quick reference, figure out how to:
+    通过创建个人简历来练习使用 R Markdown 文件。一级标题是你的姓名，并且至少要包括以下二级标题：教育背景和工作经历。每个二级标题下都应该包括一个无序列表，列出你的学位和工作信息。使用粗体来强调年份。
+    
+1.  Using the R Markdown quick reference, figure out how to: 使用 R Markdown 快速参考来找出以下操作方法。
 
-    1.  Add a footnote.
-    1.  Add a horizontal rule.
-    1.  Add a block quote.
+    1.  Add a footnote. 添加一个脚注。
+    1.  Add a horizontal rule. 添加一条水平分隔线。
+    1.  Add a block quote. 添加一个块级引用。
     
 1.  Copy and paste the contents of `diamond-sizes.Rmd` from
     <https://github.com/hadley/r4ds/tree/master/rmarkdown> in to a local
     R markdown document. Check that you can run it, then add text after the 
     frequency polygon that describes its most striking features.
+    
+    从 https://github.com/hadley/r4ds/tree/master/rmarkdown 复制 diamond-sizes.Rmd 文件，并粘贴到本地的一个 R Markdown 文件中。确认这个文件可以运行，然后在频率多边形图下面添加一些文本来描述这个图中最引人注目的特征。
 
-## Code chunks
+## Code chunks | 代码段
 
 To run code inside an R Markdown document, you need to insert a chunk. There are three ways to do so:
 
-1. The keyboard shortcut Cmd/Ctrl + Alt + I
+要想在 R Markdown 文件中运行代码，你需要插入代码段。插入代码段的方法有 3 种。
 
-1. The "Insert" button icon in the editor toolbar.
+1. The keyboard shortcut Cmd/Ctrl + Alt + I 使用组合键 Ctrl+Alt+I。
 
-1. By manually typing the chunk delimiters ` ```{r} ` and ` ``` `.
+1. The "Insert" button icon in the editor toolbar. 使用编辑器工具栏上的 Insert 按钮。
+
+1. By manually typing the chunk delimiters ` ```{r} ` and ` ``` `. 手工输入代码段标记符 ```{r} 和 ```。
 
 Obviously, I'd recommend you learn the keyboard shortcut. It will save you a lot of time in the long run!
 
+显然，我们建议你使用组合键，因为长远来看，这可以节省大量时间。
+
 You can continue to run the code using the keyboard shortcut that by now (I hope!) you know and love: Cmd/Ctrl + Enter. However, chunks get a new keyboard shortcut: Cmd/Ctrl + Shift + Enter, which runs all the code in the chunk. Think of a chunk like a function. A chunk should be relatively self-contained, and focussed around a single task. 
+
+接下来， 你可以使用迄今为止我们（ 希望你也是） 最喜欢的一个组合键来运行代码： Ctrl+Enter。还可以使用一个新的组合键：Ctrl+Shift+Enter，这个组合键可以运行代码段内的全部代码。我们可以将代码段看作一个函数，它是相对独立的，而且专注于实现某个特定任务。
 
 The following sections describe the chunk header which consists of ```` ```{r ````, followed by an optional chunk name, followed by comma separated options, followed by `}`. Next comes your R code and the chunk end is indicated by a final ```` ``` ````.
 
-### Chunk name
+以下各节将介绍代码段的头部，它由 ```{r 开头，接着是一个可选的代码段名称，然后是由逗号分隔的代码段选项，再然后是 }。接下来就是具体的 R 代码。代码段的结束标志是 ```。
+
+### Chunk name | 代码段名称
 
 Chunks can be given an optional name: ```` ```{r by-name} ````. This has three advantages:
 
+我们可以赋予代码段一个可选的名称：```{r by-name}。这样做有以下 3 个优势。
+
 1.  You can more easily navigate to specific chunks using the drop-down
     code navigator in the bottom-left of the script editor:
+    
+    • 使用脚本编辑器左下角的弹出式代码浏览菜单，更方便浏览特定的代码段。
 
     ```{r, echo = FALSE, out.width = "30%"}
     knitr::include_graphics("screenshots/rmarkdown-chunk-nav.png")
@@ -152,35 +218,53 @@ Chunks can be given an optional name: ```` ```{r by-name} ````. This has three a
 1.  Graphics produced by the chunks will have useful names that make
     them easier to use elsewhere. More on that in [other important options].
     
+    • 可以使得代码段生成的图形具备有意义的名称，从而更容易在其他地方使用。21.7.2 节将更加深入地介绍这一点。
+    
 1.  You can set up networks of cached chunks to avoid re-performing expensive
     computations on every run. More on that below.
+    
+    • 你可以建立缓存代码段的网络，以避免每次运行都重新调用昂贵的计算资源。以下内容将对此进行更多介绍。
 
 There is one chunk name that imbues special behaviour: `setup`. When you're in a notebook mode, the chunk named setup will be run automatically once, before any other code is run.
 
-### Chunk options
+setup 这个代码段名称具有特殊意义。当处于笔记本模式时，名称为 setup 的代码段会在任何其他代码运行前自动运行一次。
+
+### Chunk options | 代码段选项
 
 Chunk output can be customised with __options__, arguments supplied to chunk header. Knitr provides almost 60 options that you can use to customize your code chunks. Here we'll cover the most important chunk options that you'll use frequently. You can see the full list at <http://yihui.name/knitr/options/>. 
 
+可以使用选项来定制代码段输出，选项是提供给代码段头部的参数。knitr 提供了差不多 60 种选项，你可以使用这些选项来定制自己的代码段。接下来将介绍几个最重要的代码段选项，你以后会经常用到这些选项。可以在 http://yihui.name/knitr/options/ 中找到完整的选项列表。
+
 The most important set of options controls if your code block is executed and what results are inserted in the finished report:
+
+以下是最重要的一组选项，用来控制代码段是否可以执行，以及最终报告中包括哪些结果。
   
 *   `eval = FALSE` prevents code from being evaluated. (And obviously if the
     code is not run, no results will be generated). This is useful for 
     displaying example code, or for disabling a large block of code without 
     commenting each line.
+    
+    禁止对代码进行求值。（很明显，如果代码不能运行的话，就不能生成什么结果。）在显示示例代码或不通过每行注释禁用大段代码时，这个选项是非常有用的。
 
 *   `include = FALSE` runs the code, but doesn't show the code or results 
     in the final document. Use this for setup code that you don't want
     cluttering your report.
+    
+    可以运行代码，但不会在最终文档中显示代码和结果。如果不想让
+setup 代码出现在报告中，就可以使用这个选项。
 
 *   `echo = FALSE` prevents code, but not the results from appearing in the 
     finished file. Use this when writing reports aimed at people who don't
     want to see the underlying R code.
     
+    禁止代码出现在最终报告中，但不会禁止结果。为不想看到 R 代码的人们编写报告时，就可以使用这个选项。
+    
 *   `message = FALSE` or `warning = FALSE` prevents messages or warnings 
-    from appearing in the finished file.
+    from appearing in the finished file. 可以防止消息或警告出现在最终报告中。
+    
 
 *   `results = 'hide'` hides printed output; `fig.show = 'hide'` hides
-    plots.
+    plots. 可以隐藏文本输出；fig.show = 'hide' 可以隐藏图形输出。
 
 *   `error = TRUE` causes the render to continue even if code returns an error.
     This is rarely something you'll want to include in the final version
@@ -189,7 +273,11 @@ The most important set of options controls if your code block is executed and wh
     and want to deliberately include an error. The default, `error = FALSE` causes 
     knitting to fail if there is a single error in the document.
     
+    在代码出现错误时仍然可以生成最终报告。在报告的最终版中，我们很少需要包括出错信息，但在调试 .Rmd 文件时，出错信息是非常有用的。如果使用 R 进行教学活动，并特意想要包括出错信息的话，这个选项是非常有用的。如果使用默认设置error = FALSE，那么即使只有一个错误，文档生成也会失败。
+    
 The following table summarises which types of output each option suppresses:
+
+下表总结了每个选项对输出的具体控制。
 
 Option             | Run code | Show code | Output | Plots | Messages | Warnings 
 -------------------|----------|-----------|--------|-------|----------|---------
@@ -201,15 +289,19 @@ Option             | Run code | Show code | Output | Plots | Messages | Warnings
 `message = FALSE`  |          |           |        |       | -        |
 `warning = FALSE`  |          |           |        |       |          | -
 
-### Table
+### Table | 表格
 
 By default, R Markdown prints data frames and matrices as you'd see them in the console:
+
+默认情况下，R Markdown 输出数据框和矩阵的格式与我们在控制台中看到的相同：
 
 ```{r}
 mtcars[1:5, ]
 ```
 
 If you prefer that data be displayed with additional formatting you can use the `knitr::kable` function. The code below generates Table \@ref(tab:kable).
+
+如果更喜欢用表格来显示数据，那么你可以使用 knitr::kable 函数。以下代码可以生成下表：
 
 ```{r kable}
 knitr::kable(
@@ -220,13 +312,21 @@ knitr::kable(
 
 Read the documentation for `?knitr::kable` to see the other ways in which you can customise the table. For even deeper customisation, consider the __xtable__, __stargazer__, __pander__, __tables__, and __ascii__ packages. Each provides a set of tools for returning formatted tables from R code.
 
+使用 ?knitr::kable 阅读相关文档，学习一下定制表格的其他方式。如果想要进行更加深入的定制，可以学习一下 xtable、stargazer、pander、tables 和 ascii 包，每个包都提供了一套根据 R 代码生成格式化表格的工具。
+
 There is also a rich set of options for controlling how figures are embedded. You'll learn about these in [saving your plots].
 
-### Caching
+同样，很多选项可以控制在最终报告中嵌入图形的方式。保存图片将继续介绍这些选项。
+
+### Caching | 缓存
 
 Normally, each knit of a document starts from a completely clean slate. This is great for reproducibility, because it ensures that you've captured every important computation in code. However, it can be painful if you have some computations that take a long time. The solution is `cache = TRUE`. When set, this will save the output of the chunk to a specially named file on disk. On subsequent runs, knitr will check to see if the code has changed, and if it hasn't, it will reuse the cached results.
 
+一般来说，R Markdown 在每次生成文档时都是完全从头开始的。这对于文档的可重复性非常重要，因为这样可以确保不漏掉代码中的每一步重要计算。但是，如果有些计算需要花费大量时间，那么每次重新生成文档都会是一个非常痛苦的过程。我们对这个问题的解决方案是使用 cache = TRUE。当使用这个选项时，R Markdown 会将代码段输出保存在磁盘上一个具有特殊名称的文件中。在此后的运行中，knitr 会检查代码是否进行了修改，如果没有修改，则继续使用缓存结果。
+
 The caching system must be used with care, because by default it is based on the code only, not its dependencies. For example, here the `processed_data` chunk depends on the `raw_data` chunk:
+
+必须谨慎使用这种缓存机制，因为 knitr 在默认情况下只检查代码，不检查代码的依赖关系。例如，以下的 processed_data 代码段依赖于 raw_data 代码段：
 
     `r chunk`{r raw_data}
     rawdata <- readr::read_csv("a_very_large_file.csv")
@@ -240,6 +340,8 @@ The caching system must be used with care, because by default it is based on the
 
 Caching the `processed_data` chunk means that it will get re-run if the dplyr pipeline is changed, but it won't get rerun if the `read_csv()` call changes. You can avoid that problem with the `dependson` chunk option:
 
+缓存 processed_data 代码段意味着，只在 dplyr 管道操作被修改时才重新运行代码，但如果对 read_csv() 函数的调用被修改了，processed_data 是不会重新运行的。为了解决这个问题，可以设置 dependson 代码段选项：
+
     `r chunk`{r processed_data, cache = TRUE, dependson = "raw_data"}
     processed_data <- rawdata %>% 
       filter(!is.na(import_var)) %>% 
@@ -248,7 +350,11 @@ Caching the `processed_data` chunk means that it will get re-run if the dplyr pi
 
 `dependson` should contain a character vector of *every* chunk that the cached chunk depends on. Knitr will update the results for the cached chunk whenever it detects that one of its dependencies have changed.
 
+dependson 应该包含每个代码段的一个字符向量，其中包括缓存代码段依赖的所有代码段。只要 knitr 检测到某个依赖代码段被修改了，就会重新运行缓存代码段以更新结果。
+
 Note that the chunks won't update if `a_very_large_file.csv` changes, because knitr caching only tracks changes within the `.Rmd` file. If you want to also track changes to that file you can use the `cache.extra` option. This is an arbitrary R expression that will invalidate the cache whenever it changes. A good function to use is `file.info()`: it returns a bunch of information about the file including when it was last modified. Then you can write:
+
+注意，如果 a_very_large_file.csv 文件被修改了，代码段是不会进行更新的，因为 knitr 缓存机制只跟踪 .Rmd 文件内部的变化。如果想要跟踪外部文件的变化，可以使用 cache. extra 选项。这是一个非常霸道的 R 表达式，只要其内容发生变化，缓存就会失效。我们可以同时使用 file.info() 函数，它可以返回大量关于文件的信息，其中包括最后修改的时间。因此可以将代码修改如下：
 
     `r chunk`{r raw_data, cache.extra = file.info("a_very_large_file.csv")}
     rawdata <- readr::read_csv("a_very_large_file.csv")
@@ -256,11 +362,17 @@ Note that the chunks won't update if `a_very_large_file.csv` changes, because kn
 
 As your caching strategies get progressively more complicated, it's a good idea to regularly clear out all your caches with `knitr::clean_cache()`.
 
+因为缓存策略会逐渐变得复杂，所以应该定期使用 knitr::clean_cache() 命令清除所有缓存。
+
 I've used the advice of [David Robinson](https://twitter.com/drob/status/738786604731490304) to name these chunks: each chunk is named after the primary object that it creates. This makes it easier to understand the `dependson` specification.
 
-### Global options
+我们遵从了 David Robinson 给出的命名代码段的建议，即使用代码段生成的主要对象来命名代码段，这样可以使 dependson 设置更容易理解。
+
+### Global options | 全局选项
 
 As you work more with knitr, you will discover that some of the default chunk options don't fit your needs and you want to change them. You can do this by calling `knitr::opts_chunk$set()` in a code chunk. For example, when writing books and tutorials I set:
+
+当越来越多地使用 knitr 时，你会发现一些默认的代码段设置并不符合你的需要，因此想要修改它们。你可以在代码段中调用 knitr::opts_chunk$set() 函数来修改选项。例如，在编写书籍和教程时，我们会设置如下：
 
 ```{r, eval = FALSE}
 knitr::opts_chunk$set(
@@ -271,6 +383,8 @@ knitr::opts_chunk$set(
 
 This uses my preferred comment formatting, and ensures that the code and output are kept closely entwined. On the other hand, if you were preparing a report, you might set:
 
+这样可以使用我们更喜欢的注释格式，并确保代码和输出能够紧密地组织在一起。另一方面，如果想要准备一份报告，则应该设置如下：
+
 ```{r eval = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE
@@ -279,20 +393,31 @@ knitr::opts_chunk$set(
 
 That will hide the code by default, so only showing the chunks you deliberately choose to show (with `echo = TRUE`). You might consider setting `message = FALSE` and `warning = FALSE`, but that would make it harder to debug problems because you wouldn't see any messages in the final document.
 
-### Inline code
+这样可以默认隐藏代码，（使用 echo = TRUE）只显示你特意想展示出来的代码段。你还可以设置 message = FALSE 和 warning = FALSE，但这会使得调试变得更加困难，因为你在最终文档中看不到任何系统消息。
+
+### Inline code | 内联代码
 
 There is one other way to embed R code into an R Markdown document: directly into the text, with:  `r inline()`. This can be very useful if you mention properties of your data in the text. For example, in the example document I used at the start of the chapter I had:
+
+将 R 代码嵌入 R Markdown 文档的另一种方法是：使用 r 直接将代码嵌入文档。如果想在文本中加入数据属性，那么这种方法是非常奏效的。例如，我们在本章开头所用的示例文档中有以下文本。
 
 > We have data about `r inline('nrow(diamonds)')` diamonds. 
 > Only `r inline('nrow(diamonds) - nrow(smaller)')` are larger 
 > than 2.5 carats. The distribution of the remainder is shown below:
+> 这份数据中包含了 r nrow(diamonds) 颗钻石的信息。其中只有 r nrow(diamonds)
+– nrow(smaller) 颗钻石大于 2.5 克拉。其余钻石的分布如下所示。
 
 When the report is knit, the results of these computations are inserted into the text:
 
+当生成最终报告时，knitr 会计算出 R 代码的结果，并插入文本。
+
 > We have data about 53940 diamonds. Only 126 are larger than 
 > 2.5 carats. The distribution of the remainder is shown below:
+> 这份数据中包含了 53 940 颗钻石的信息。其中只有 126 颗钻石大于 2.5 克拉。其余钻石的分布如下所示。
 
 When inserting numbers into text, `format()` is your friend. It allows you to set the number of `digits` so you don't print to a ridiculous degree of accuracy, and a `big.mark` to make numbers easier to read. I'll often combine these into a helper function:
+
+当向文本中插入数值时，format() 函数非常有用，你可以使用这个函数来设置 digits 的数值，避免打印出不必要的小数位，还可以设置 big.mark，从而使得数值更加易读。我们经常使用一个辅助函数来同时完成这两种设置：
 
 ```{r}
 comma <- function(x) format(x, digits = 2, big.mark = ",")
@@ -300,43 +425,63 @@ comma(3452345)
 comma(.12358124331)
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  Add a section that explores how diamond sizes vary by cut, colour,
     and clarity. Assume you're writing a report for someone who doesn't know
     R, and instead of setting `echo = FALSE` on each chunk, set a global 
     option.
+    
+    为本章开头的 .Rmd 文件添加一节内容，研究钻石大小是如何随着切割、颜色和纯净度的不同而变化的。假设你要为不懂得 R 语言的人撰写一份报告，不要在每个代码段上设置 echo = FALSE，而是设置全局选项。
 
 1.  Download `diamond-sizes.Rmd` from
     <https://github.com/hadley/r4ds/tree/master/rmarkdown>. Add a section
     that describes the largest 20 diamonds, including a table that displays
     their most important attributes.
+    
+    从 https://github.com/hadley/r4ds/tree/master/rmarkdown 下载 diamond-sizes.Rmd 文件，为其添加一节内容，描述最大的 20 颗钻石，其中要包括一个能显示出它们最重要特性的表格。
 
 1.  Modify `diamonds-sizes.Rmd` to use `comma()` to produce nicely
     formatted output. Also include the percentage of diamonds that are
     larger than 2.5 carats.
+    
+    修改 diamond-sizes.Rmd 文件，使用 comma() 函数生成格式美观的输出，输出中还要包括大于 2.5 克拉的钻石的百分比。
 
 1.  Set up a network of chunks where `d` depends on `c` and `b`, and
     both `b` and `c` depend on `a`. Have each chunk print `lubridate::now()`,
     set `cache = TRUE`, then verify your understanding of caching.
+    
+    建立一个代码段网络，其中 d 依赖于 c 和 b，b 和 c 都依赖于 a。每个代码段都输出lubridate::now()，设置 cache = TRUE，并验证自己对缓存机制的理解。
 
-## Troubleshooting
+## Troubleshooting | 排错
 
 Troubleshooting R Markdown documents can be challenging because you are no longer in an interactive R environment, and you will need to learn some new tricks. The first thing you should always try is to recreate the problem in an interactive session. Restart R, then "Run all chunks" (either from Code menu, under Run region), or with the keyboard shortcut Ctrl + Alt + R. If you're lucky, that will recreate the problem, and you can figure out what's going on interactively.
 
+为 R Markdown 文件排查错误是比较困难的，因为我们不再拥有交互的 R 语言环境了，因此需要学习一些新的技巧。首先，我们必须尽力在交互会话中重现问题。重新启动 R，然后执行 Run all chunks（可以使用 Code 菜单，在 Run Region 菜单项下执行 Run All，也可以使用组合键 Ctrl+Alt+R）。如果你运气不错，就可以重现问题。这种交互方式可以帮助找出问题所在。
+
 If that doesn't help, there must be something different between your interactive environment and the R markdown environment. You're going to need to systematically explore the options. The most common difference is the working directory: the working directory of an R Markdown is the directory in which it lives. Check the working directory is what you expect by including `getwd()` in a chunk.
+
+如果这样行不通，那一定是因为你的交互式环境和 R Markdown 环境之间有差别，你应该系统地检查一下选项设置。最常见的差别在于工作目录，R Markdown 的工作目录就是文件所在的目录。你可以在代码段中加入 getwd() 函数，查看工作目录是否符合预期。
 
 Next, brainstorm all the things that might cause the bug. You'll need to systematically check that they're the same in your R session and your R markdown session. The easiest way to do that is to set `error = TRUE` on the chunk causing the problem, then use `print()` and `str()` to check that settings are as you expect.
 
-## YAML header
+接下来，尽力思考可能引起问题的所有因素。你需要系统地检查一下这些因素在 R 会话和R Markdown 会话中是否完全一致。最简单的做法就是在引起问题的代码段中设置 error = TRUE，然后使用 print() 和 str() 函数检查这些因素是否与你预想的一致。
+
+## YAML header | YAML文件头
 
 You can control many other "whole document" settings by tweaking the parameters of the YAML header.  You might wonder what YAML stands for: it's "yet another markup language", which is designed for representing hierarchical data in a way that's easy for humans to read and write. R Markdown uses it to control many details of the output. Here we'll discuss two: document parameters and bibliographies.
 
-### Parameters
+通过调整 YAML 文件头中的参数，你可以控制很多其他的“全文档”设置。你或许很想知道 YAML 的意义，它代表的是仍是一种标记语言（yet another markup language）。YAML设计用于表示容易被人类读写的层次化数据。R Markdown 使用 YAML 来控制很多输出细节。接下来将介绍两种 YAML 文件头：文档参数和参考文献。
+
+### Parameters | 文档参数
 
 R Markdown documents can include one or more parameters whose values can be set when you render the report. Parameters are useful when you want to re-render the same report with distinct values for various key inputs. For example, you might be producing sales reports per branch, exam results by student, or demographic summaries by country. To declare one or more parameters, use the `params` field. 
 
+R Markdown 文件中可以包含在生成报告时进行设置的一个或多个参数。如果想要重新生成报告，但对多个关键输入使用与原来不同的值，那么这些参数就非常有用了。例如，你可以生成不同部门的销售报告、不同学生的考试结果，等等。如果想要声明一个或多个参数，可以使用 params 域。
+
 This example uses a `my_class` parameter to determine which class of cars to display:
+
+以下示例使用了 my_class 参数来确定展示哪一类汽车：
 
 ```{r, echo = FALSE, out.width = "100%", comment = ""}
 cat(readr::read_file("rmarkdown/fuel-economy.Rmd"))
@@ -344,7 +489,11 @@ cat(readr::read_file("rmarkdown/fuel-economy.Rmd"))
 
 As you can see, parameters are available within the code chunks as a read-only list named `params`.
 
+正如你看到的，在代码段中，参数设置在名为 params 的只读列表中。
+
 You can write atomic vectors directly into the YAML header. You can also run arbitrary R expressions by prefacing the parameter value with `!r`. This is a good way to specify date/time parameters.
+
+你可以将原子向量直接写在 YAML 文件头中。在参数值前面加一个 !r 即可运行任意 R 表达式。这是设置日期 / 时间参数的一种绝好方法：
 
 ```yaml
 params:
@@ -354,13 +503,19 @@ params:
 
 In RStudio, you can click the "Knit with Parameters" option in the Knit dropdown menu to set parameters, render, and preview the report in a single user friendly step. You can customise the dialog by setting other options in the header. See <http://rmarkdown.rstudio.com/developer_parameterized_reports.html#parameter_user_interfaces> for more details.
 
+在 RStudio 中， 你可以点击 Knit 下拉菜单中的 Knit with Parameters 菜单项来完成设置参数、生成报告和预览报告等工作。这是用户友好型的一个步骤。你可以通过设置文件头中的其他选项来定制对话框，详细信息参见 https://rmarkdown.rstudio.com/developer_ parameterized_reports.html。
+
 Alternatively, if you need to produce many such parameterised reports, you can call `rmarkdown::render()` with a list of `params`:
+
+另外，如果需要生成多个这种带参数的报告，可以使用一个 params 列表来调用 rmarkdown:: render() 函数：
 
 ```{r eval = FALSE}
 rmarkdown::render("fuel-economy.Rmd", params = list(my_class = "suv"))
 ```
 
 This is particularly powerful in conjunction with `purrr:pwalk()`. The following example creates a report for each value of `class` found in `mpg`. First we create a data frame that has one row for each class, giving the `filename` of the report and the `params`:
+
+这个函数与 purrr::pwalk() 函数组合使用时功能非常强大。以下示例为 mpg 数据集中的每个 class 值都创建了一份报告。首先，我们创建一个数据框，其中每行都代表一类汽车， 并给出了报告的文件名 filename 以及应该设定的参数 params：
 
 ```{r}
 reports <- tibble(
@@ -373,15 +528,19 @@ reports
 
 Then we match the column names to the argument names of `render()`, and use purrr's **parallel** walk to call `render()` once for each row:
 
+然后我们将列名与 render() 函数的参数名进行匹配，并使用 purrr 包的并行游走函数为每一行调用一次 render()：
+
 ```{r, eval = FALSE}
 reports %>% 
   select(output_file = filename, params) %>% 
   purrr::pwalk(rmarkdown::render, input = "fuel-economy.Rmd")
 ```
 
-### Bibliographies and Citations
+### Bibliographies and Citations | 参考文献与引用
 
 Pandoc can automatically generate citations and a bibliography in a number of styles. To use this feature, specify a bibliography file using the `bibliography` field in your file's header. The field should contain a path from the directory that contains your .Rmd file to the file that contains the bibliography file:
+
+pandoc 可以自动生成引用和各种风格的参考文献。要想使用这个功能，需要在文件头中的bibliography 域中设定一个参考文献文件。这个域应该包含一个从 .Rmd 文件目录到参考文献文件目录的路径：
 
 ```yaml
 bibliography: rmarkdown.bib
@@ -389,7 +548,11 @@ bibliography: rmarkdown.bib
 
 You can use many common bibliography formats including BibLaTeX, BibTeX, endnote, medline.
 
+你可以使用多种常用的参考文献格式，如 BibLaTeX、BibTeX、endnote 和 medline。
+
 To create a citation within your .Rmd file, use a key composed of ‘@’ + the citation identifier from the bibliography file. Then place the citation in square brackets. Here are some examples:
+
+要想在 .Rmd 文件中创建一个引用，你可以使用一个由 @ 和引用标识符组成的关键词，其中引用标识符来自于参考文献文件。接着需要将引用放在方括号中。以下是一些示例：
 
 ```markdown
 Separate multiple citations with a `;`: Blah blah [@smith04; @doe99].
@@ -406,7 +569,11 @@ Smith says blah [-@smith04].
 
 When R Markdown renders your file, it will build and append a bibliography to the end of your document. The bibliography will contain each of the cited references from your bibliography file, but it will not contain a section heading. As a result it is common practice to end your file with a section header for the bibliography, such as `# References` or `# Bibliography`.
 
+在生成最终文件时，R Markdown 会创建参考文献并将其追加到文件的最后。参考文献中会包含来自于参考文献文件中被引用的所有文献，但不会包含小节标题。因此，通常的做法是在文件的末尾为参考文献加上一个小节标题，如 # References 或者 # Bibliography。
+
 You can change the style of your citations and bibliography by referencing a CSL (citation style language) file in the `csl` field:
+
+你可以在 csl 域中引用一个 CSL（citation style language，引用样式语言）文件来改变引用和参考文献的风格：
 
 ```yaml
 bibliography: rmarkdown.bib
@@ -415,18 +582,29 @@ csl: apa.csl
 
 As with the bibliography field, your csl file should contain a path to the file. Here I assume that the csl file is in the same directory as the .Rmd file. A good place to find CSL style files for common bibliography styles is  <http://github.com/citation-style-language/styles>.
 
-## Learning more
+对于参考文献域，你的CSL 文件应该包含一个到参考文献文件的路径。在这个示例中，我们假设 CSL 文件和 .Rmd 文件位于同一目录下。你可以在 http://github.com/citation-style- language/styles 中找到控制常用参考文件风格的 CSL 样式文件。
+
+## Learning more | 更多学习资源
 
 R Markdown is still relatively young, and is still growing rapidly. The best place to stay on top of innovations is the official R Markdown website: <http://rmarkdown.rstudio.com>.
 
+R Markdown 还不算很成熟，正处于快速发展阶段。如果想要关注这项技术的最新发展，可以访问 R Markdown 官方网址。
+
 There are two important topics that we haven't covered here: collaboration, and the details of accurately communicating your ideas to other humans. Collaboration is a vital part of modern data science, and you can make your life much easier by using version control tools, like Git and GitHub. We recommend two free resources that will teach you about Git:
+
+本章没有介绍的两个重要主题是：协同工作以及与他人精确沟通自己想法的具体做法。协同工作是现代数据科学中极其重要的一部分，使用像 Git 和 GitHub 这样的版本控制工具可以让你的工作变得更加轻松。以下推荐了学习 Git 的两种免费资源。
 
 1.  "Happy Git with R": a user friendly introduction to Git and GitHub from 
     R users, by Jenny Bryan. The book is freely available online:
     <http://happygitwithr.com>
     
+    •	“Happy Git with R”：面向 R 语言用户的用户友好型 Git 与 GitHub 入门简介，Jenny Bryan 著。这本书有免费的在线版本。
+    
 1.  The "Git and GitHub" chapter of _R Packages_, by Hadley. You can also 
     read it for free online: <http://r-pkgs.had.co.nz/git.html>.
+    
+    •	《R 包开发》 <http://www.ituring.com.cn/book/1688> 中的“Git 和 GitHub”一章，Hadley 著。你也可以在线免费阅读这部分内容。
 
 I have also not touched on what you should actually write in order to clearly communicate the results of your analysis. To improve your writing, I highly recommend reading either [_Style: Lessons in Clarity and Grace_](https://amzn.com/0134080416) by Joseph M. Williams & Joseph Bizup, or [_The Sense of Structure: Writing from the Reader's Perspective_](https://amzn.com/0205296327) by George Gopen. Both books will help you understand the structure of sentences and paragraphs, and give you the tools to make your writing more clear. (These books are rather expensive if purchased new, but they're used by many English classes so there are plenty of cheap second-hand copies). George Gopen also has a number of short articles on writing at <https://www.georgegopen.com/the-litigation-articles.html>. They are aimed at lawyers, but almost everything applies to data scientists too. 
   
+要想明确无误地与他人沟通分析结果，应该使用何种写作方法与写作技巧也是本章没有讲到的内容。为了提高写作水平，我们强烈推荐你要么阅读一下 Joseph M. Williams 和Joseph Bizup 所著的 Style: Lessons in Clarity，要么阅读一下 George Gopen 所著的 The Sense of Structure: Writing from the Reader’s Perspective。这两本书都可以帮助你理解句子和段落的结构，并掌握使得文章更加清晰易读的方法。（这两本书都非常昂贵，但因为很多英文课堂都使用这两本书作为教材，所以市面上有大量的便宜二手书。）George Gopen 还撰写了很多关于写作的文章，虽然这些文章的目标读者是律师，但几乎所有内容都适合数据科学家。

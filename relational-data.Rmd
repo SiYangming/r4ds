@@ -1,26 +1,42 @@
-# Relational data
+# Relational data | 关系数据
 
-## Introduction
+## Introduction | 简介
 
 It's rare that a data analysis involves only a single table of data. Typically you have many tables of data, and you must combine them to answer the questions that you're interested in. Collectively, multiple tables of data are called __relational data__ because it is the relations, not just the individual datasets, that are important.
 
+只涉及一张数据表的数据分析是非常罕见的。通常来说，你会有很多个数据表，而且必须综合使用它们才能回答你所感兴趣的问题。存在于多个表中的这种数据统称为关系数据， 因为重要的是数据间的关系，而不是单个数据集。
+
 Relations are always defined between a pair of tables. All other relations are built up from this simple idea: the relations of three or more tables are always a property of the relations between each pair. Sometimes both elements of a pair can be the same table! This is needed if, for example, you have a table of people, and each person has a reference to their parents.
+
+关系总是定义于两张表之间。其他所有关系都是建立在这种简单思想之上：三张或更多表之间的关系总是可以用每两个表之间关系表示出来。有时关系涉及的两个表甚至就是同一张！例如，如果你有一张人员表，那么其中某个人与其父母的关系就是这种情况。
 
 To work with relational data you need verbs that work with pairs of tables. There are three families of verbs designed to work with relational data:
 
+要想处理关系数据，你需要能够在两张表之间进行的操作。我们设计了三类操作来处理关系数据。
+
 * __Mutating joins__, which add new variables to one data frame from matching
   observations in another.
+  
+  •	合并连接：向数据框中加入新变量，新变量的值是另一个数据框中的匹配观测。
 
 * __Filtering joins__, which filter observations from one data frame based on
   whether or not they match an observation in the other table.
+  
+  •	筛选连接：根据是否匹配另一个数据框中的观测，筛选数据框中的观测。
 
 * __Set operations__, which treat observations as if they were set elements.
 
+•	集合操作：将观测作为集合元素来处理。
+
 The most common place to find relational data is in a _relational_ database management system (or RDBMS), a term that encompasses almost all modern databases. If you've used a database before, you've almost certainly used SQL. If so, you should find the concepts in this chapter familiar, although their expression in dplyr is a little different. Generally, dplyr is a little easier to use than SQL because dplyr is specialised to do data analysis: it makes common data analysis operations easier, at the expense of making it more difficult to do other things that aren't commonly needed for data analysis.
 
-### Prerequisites
+关系数据最常见于关系数据库管理系统（relational database management system，RDBMS），该系统几乎囊括了所有的现代数据库。如果之前使用过数据库，那你肯定使用过 SQL。如果是这样的话，你会发现本章中的很多概念都似曾相识，尽管其在 dplyr 中的表达形式略微不同。一般来说，dplyr 要比 SQL 更容易使用，因为前者是专门用于进行数据分析的。在进行常用的数据分析操作时，dplyr 非常得心应手，反之，它并不擅长数据分析中不常用的那些操作。
+
+### Prerequisites | 准备工作
 
 We will explore relational data from `nycflights13` using the two-table verbs from dplyr.
+
+我们使用 dplyr 的一些函数来研究一下 nycflights13 中的关系数据，这些函数可以在两张数据表间进行操作。
 
 ```{r setup, message = FALSE}
 library(tidyverse)
@@ -31,8 +47,13 @@ library(nycflights13)
 
 We will use the nycflights13 package to learn about relational data. nycflights13 contains four tibbles that are related to the `flights` table that you used in [data transformation]:
 
+我们将使用 nycflights13 包来学习关系数据。nycflights13 中包含了与 flights 相关的 4 个 tibble，我们已经在第 3 章中使用过 flights 表了。
+
+
 *   `airlines` lets you look up the full carrier name from its abbreviated
     code:
+    
+    •	airlines：可以根据航空公司的缩写码查到公司全名。
 
     ```{r}
     airlines
@@ -40,6 +61,8 @@ We will use the nycflights13 package to learn about relational data. nycflights1
 
 *   `airports` gives information about each airport, identified by the `faa`
     airport code:
+    
+    •	airports：给出了每个机场的信息，通过 faa 机场编码进行标识。
 
     ```{r}
     airports
@@ -47,11 +70,15 @@ We will use the nycflights13 package to learn about relational data. nycflights1
 
 *   `planes` gives information about each plane, identified by its `tailnum`:
 
+•	planes：给出了每架飞机的信息，通过 tailnum 进行标识。
+
     ```{r}
     planes
     ```
 
 *   `weather` gives the weather at each NYC airport for each hour:
+
+•	weather：给出了纽约机场每小时的天气状况。
 
     ```{r}
     weather
@@ -59,59 +86,86 @@ We will use the nycflights13 package to learn about relational data. nycflights1
 
 One way to show the relationships between the different tables is with a drawing:
 
+展示不同数据表之间关系的一种方法是绘制图形。
+
 ```{r, echo = FALSE}
 knitr::include_graphics("diagrams/relational-nycflights.png")
 ```
 
 This diagram is a little overwhelming, but it's simple compared to some you'll see in the wild! The key to understanding diagrams like this is to remember each relation always concerns a pair of tables. You don't need to understand the whole thing; you just need to understand the chain of relations between the tables that you are interested in.
 
-For nycflights13:
+这个图有点让人眼花缭乱，但跟实际工作中的一些图比起来，可以说是相当简洁了。理解这种图的关键是，记住每种关系只与两张表有关。不需要弄清楚所有的事情，只要明白你所关心的表格间的关系即可。
 
-* `flights` connects to `planes` via a single variable, `tailnum`. 
+For nycflights13: 对于 nycflights13 包中的表来说：
 
-* `flights` connects to `airlines` through the `carrier` variable.
+* `flights` connects to `planes` via a single variable, `tailnum`.  flights 与 planes 通过单变量 tailnum 相连；
+
+* `flights` connects to `airlines` through the `carrier` variable. flights 与 airlines 通过变量 carrier 相连；
 
 * `flights` connects to `airports` in two ways: via the `origin` and
   `dest` variables.
+  
+  •	flights 与 airports 通过两种方式相连（变量 origin 和 dest）；
 
 * `flights` connects to `weather` via `origin` (the location), and
   `year`, `month`, `day` and `hour` (the time).
+  
+  •	flights 与 weather 通过变量 origin（位置）以及 year、month、day 和 hour（时间）相连。
 
-### Exercises
+### Exercises | 练习
 
 1.  Imagine you wanted to draw (approximately) the route each plane flies from
     its origin to its destination. What variables would you need? What tables
     would you need to combine?
+    
+    假设想要画出每架飞机从起点到终点的（近似）飞行路线，需要哪些变量？需要组合哪些表格？
 
 1.  I forgot to draw the relationship between `weather` and `airports`.
     What is the relationship and how should it appear in the diagram?
+    
+    我们忘记画出 weather 和 airports 之间的关系了，它们之间的关系是什么？如何在图中表示？
 
 1.  `weather` only contains information for the origin (NYC) airports. If
     it contained weather records for all airports in the USA, what additional
     relation would it define with `flights`?
+    
+    weather 表中仅包含起点机场（纽约）的信息。如果它包含美国所有机场的天气记录， 那么应如何定义其与 flights 之间的关系？
 
 1.  We know that some days of the year are "special", and fewer people than
     usual fly on them. How might you represent that data as a data frame?
     What would be the primary keys of that table? How would it connect to the
     existing tables?
+    
+    我们知道每年的有些日子是“特殊的”，这些日子中乘飞机的人比平时要少。如何将这种数据表示为一个数据框？这个表的主键是什么？它与现有表格之间的关系是怎样的？
 
-## Keys
+## Keys | 键
 
 The variables used to connect each pair of tables are called __keys__. A key is a variable (or set of variables) that uniquely identifies an observation. In simple cases, a single variable is sufficient to identify an observation. For example, each plane is uniquely identified by its `tailnum`. In other cases, multiple variables may be needed. For example, to identify an observation in `weather` you need five variables: `year`, `month`, `day`, `hour`, and `origin`.
 
+用于连接每对数据表的变量称为键。键是能唯一标识观测的变量（或变量集合）。简单情况下，单个变量就足以标识一个观测。例如，每架飞机都可以由 tailnum 唯一标识。其他情况可能需要多个变量。例如，要想标识 weather 中的观测，你需要 5 个变量：year、month、day、hour 和 origin。
+
 There are two types of keys:
+键的类型有两种。
 
 * A __primary key__ uniquely identifies an observation in its own table.
   For example, `planes$tailnum` is a primary key because it uniquely identifies
   each plane in the `planes` table.
+  
+  •	主键：唯一标识其所在数据表中的观测。例如，planes$tailnum 是一个主键，因为其可以唯一标识 planes 表中的每架飞机。
 
 * A __foreign key__ uniquely identifies an observation in another table.
   For example, `flights$tailnum` is a foreign key because it appears in the 
   `flights` table where it matches each flight to a unique plane.
+  
+  •	外键：唯一标识另一个数据表中的观测。例如，flights$tailnum 是一个外键，因为其出现在 flights 表中，并可以将每次航班与唯一一架飞机匹配。
 
 A variable can be both a primary key _and_ a foreign key. For example, `origin` is part of the `weather` primary key, and is also a foreign key for the `airports` table.
 
+一个变量既可以是主键，也可以是外键。例如，origin 是 weather 表主键的一部分，同时也是 airports 表的外键。
+
 Once you've identified the primary keys in your tables, it's good practice to verify that they do indeed uniquely identify each observation. One way to do that is to `count()` the primary keys and look for entries where `n` is greater than one:
+
+一旦识别出表的主键，最好验证一下，看看它们能否真正唯一标识每个观测。一种验证方法是对主键进行 count() 操作，然后查看是否有 n 大于 1 的记录：
 
 ```{r}
 planes %>% 
@@ -125,6 +179,8 @@ weather %>%
 
 Sometimes a table doesn't have an explicit primary key: each row is an observation, but no combination of variables reliably identifies it. For example, what's the primary key in the `flights` table? You might think it would be the date plus the flight or tail number, but neither of those are unique:
 
+有时数据表没有明确的主键：每行都是一个观测，但没有一个变量组合能够明确地标识它。例如，flights 表中的主键是什么？你可能认为是日期加航班号或者是日期加机尾编号，但这两种组合都不是唯一标识：
+
 ```{r}
 flights %>% 
   count(year, month, day, flight) %>% 
@@ -137,13 +193,17 @@ flights %>%
 
 When starting to work with this data, I had naively assumed that each flight number would be only used once per day: that would make it much easier to communicate problems with a specific flight. Unfortunately that is not the case! If a table lacks a primary key, it's sometimes useful to add one with `mutate()` and `row_number()`. That makes it easier to match observations if you've done some filtering and want to check back in with the original data. This is called a __surrogate key__.
 
+当开始处理这份数据时，我们天真地假设了每个航班号每天只用一次，因为这样就非常容易与某个特定航班来交流问题。但很遗憾，真实情况并不是这样的。如果一张表没有主键，有时就需要使用 mutate() 函数和 row_number() 函数为表加上一个主键。这样一来， 如果你完成了一些筛选工作，并想要使用原始数据检查的话，就可以更容易地匹配观测。这种主键称为代理键。
+
 A primary key and the corresponding foreign key in another table form a __relation__. Relations are typically one-to-many. For example, each flight has one plane, but each plane has many flights. In other data, you'll occasionally see a 1-to-1 relationship. You can think of this as a special case of 1-to-many. You can model many-to-many relations with a many-to-1 relation plus a 1-to-many relation. For example, in this data there's a many-to-many relationship between airlines and airports: each airline flies to many airports; each airport hosts many airlines.
 
-### Exercises
+主键与另一张表中与之对应的外键可以构成关系。关系通常是一对多的。例如，每个航班只有一架飞机，但每架飞机可以飞多个航班。在另一些数据中，你有时还会遇到一对一的关系。你可以将这种关系看作一对多关系的特殊情况。你可以使用多对一关系加上一对多关系来构造多对多关系。例如，在这份数据中，航空公司与机场之间存在着多对多关系： 每个航空公司可以使用多个机场，每个机场可以服务多个航空公司。
 
-1.  Add a surrogate key to `flights`.
+### Exercises | 练习
 
-1.  Identify the keys in the following datasets
+1.  Add a surrogate key to `flights`.  向 flights 添加一个代理键。
+
+1.  Identify the keys in the following datasets 找出以下各数据集中的键。
 
     1.  `Lahman::Batting`,
     1.  `babynames::babynames`
@@ -152,19 +212,29 @@ A primary key and the corresponding foreign key in another table form a __relati
     1.  `ggplot2::diamonds`
     
     (You might need to install some packages and read some documentation.)
+    
+    （你可能需要安装一些 R 包，并阅读一些文档。）
 
 1.  Draw a diagram illustrating the connections between the `Batting`,
     `People`, and `Salaries` tables in the Lahman package. Draw another diagram
     that shows the relationship between `People`, `Managers`, `AwardsManagers`.
+    
+    (1)	画图说明 Lahman 包中的 Batting、Master 和 Salaries 表之间的关系。画另一张图来说明 Master、Managers 和 AwardsManagers 表之间的关系。
 
     How would you characterise the relationship between the `Batting`,
     `Pitching`, and `Fielding` tables?
+    
+    应该如何描绘 Batting、Pitching 和 Fielding 表之间的关系？
 
-## Mutating joins {#mutating-joins}
+## Mutating joins | 合并连接 {#mutating-joins}
 
 The first tool we'll look at for combining a pair of tables is the __mutating join__. A mutating join allows you to combine variables from two tables. It first matches observations by their keys, then copies across variables from one table to the other.
 
+本节将介绍用于组合两个表格的第一种工具，即合并连接。合并连接可以将两个表格中的变量组合起来，它先通过两个表格的键匹配观测，然后将一个表格中的变量复制到另一个表格中。
+
 Like `mutate()`, the join functions add variables to the right, so if you have a lot of variables already, the new variables won't get printed out. For these examples, we'll make it easier to see what's going on in the examples by creating a narrower dataset:
+
+和 mutate() 函数一样，连接函数也会将变量添加在表格的右侧，因此如果表格中已经有了很多变量，那么新变量就不会显示出来。为了解决这个问题，我们建立一个简化的数据集，以便更易看到示例数据集中发生的变化：
 
 ```{r}
 flights2 <- flights %>% 
@@ -174,7 +244,11 @@ flights2
 
 (Remember, when you're in RStudio, you can also use `View()` to avoid this problem.)
 
+（记住，如果使用的是 RStudio，你还可以使用 View() 来解决这个问题。）
+
 Imagine you want to add the full airline name to the `flights2` data. You can combine the `airlines` and `flights2` data frames with `left_join()`:
+
+假设想要将航空公司的全名加入 flights2 数据集， 你可以通过 left_join() 函数组合airlines 和 flights2 数据框：
 
 ```{r}
 flights2 %>%
@@ -184,6 +258,8 @@ flights2 %>%
 
 The result of joining airlines to flights2 is an additional variable: `name`. This is why I call this type of join a mutating join. In this case, you could have got to the same place using `mutate()` and R's base subsetting:
 
+将航空公司数据连接到 flights2 的结果产生了一个新变量：name。这就是我们将这种连接称为合并连接的原因。对于这个示例，我们可以通过 mutate() 函数和 R 的取子集操作达到同样的效果：
+
 ```{r}
 flights2 %>%
   select(-origin, -dest) %>% 
@@ -192,11 +268,17 @@ flights2 %>%
 
 But this is hard to generalise when you need to match multiple variables, and takes close reading to figure out the overall intent.
 
+但这种方式很难推广到需要匹配多个变量的情况，而且需要仔细阅读代码才能搞清楚操作目的。
+
 The following sections explain, in detail, how mutating joins work. You'll start by learning a useful visual representation of joins. We'll then use that to explain the four mutating join functions: the inner join, and the three outer joins. When working with real data, keys don't always uniquely identify observations, so next we'll talk about what happens when there isn't a unique match. Finally, you'll learn how to tell dplyr which variables are the keys for a given join.
 
-### Understanding joins
+下一节将详细阐释合并连接的工作原理。首先，我们将介绍连接的一种可视化表示。接着使用这种可视化表示来解释 4 种合并连接：1 种内连接和 3 种外连接。在处理实际数据时， 键并不能总是唯一地标识观测，因此我们接下来将讨论如何处理不能唯一匹配的情况。最后，我们将介绍如何通知 dplyr 哪个变量是给定连接的键。
+
+### Understanding joins | 理解连接
 
 To help you learn how joins work, I'm going to use a visual representation:
+
+为了帮助你掌握连接的工作原理，我们将介绍用图形来表示连接的一种方法：
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-setup.png")
@@ -218,7 +300,11 @@ y <- tribble(
 
 The coloured column represents the "key" variable: these are used to match the rows between the tables. The grey column represents the "value" column that is carried along for the ride. In these examples I'll show a single key variable, but the idea generalises in a straightforward way to multiple keys and multiple values.
 
+有颜色的列表示作为“键”的变量：它们用于在表间匹配行。灰色列表示“值”列，是与键对应的值。在以下的示例中，虽然键和值都是一个变量，但非常容易推广到多个键变量和多个值变量的情况。
+
 A join is a way of connecting each row in `x` to zero, one, or more rows in `y`. The following diagram shows each potential match as an intersection of a pair of lines.
+
+连接是将 x 中每行连接到 y 中 0 行、一行或多行的一种方法。下图表示出了所有可能的匹配，匹配就是两行之间的交集。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-setup2.png")
@@ -226,15 +312,21 @@ knitr::include_graphics("diagrams/join-setup2.png")
 
 (If you look closely, you might notice that we've switched the order of the key and value columns in `x`. This is to emphasise that joins match based on the key; the value is just carried along for the ride.)
 
+（如果观察得足够仔细，那么你就会发现我们交换了 x 中的键列和值列的顺序。这只是为了强调连接是按照键来进行匹配的。实际上键和值的对应关系没有改变。）
+
 In an actual join, matches will be indicated with dots. The number of dots = the number of matches = the number of rows in the output.
+
+匹配在实际的连接操作中是用圆点表示的。圆点的数量 = 匹配的数量 = 结果中行的数量。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-inner.png")
 ```
 
-### Inner join {#inner-join}
+### Inner join | 内连接 {#inner-join}
 
 The simplest type of join is the __inner join__. An inner join matches pairs of observations whenever their keys are equal:
+
+内连接是最简单的一种连接。只要两个观测的键是相等的，内连接就可以匹配它们。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-inner.png")
@@ -242,7 +334,11 @@ knitr::include_graphics("diagrams/join-inner.png")
 
 (To be precise, this is an inner __equijoin__ because the keys are matched using the equality operator. Since most joins are equijoins we usually drop that specification.)
 
+（确切地说，这是一种内部等值连接，因为在匹配键时使用的是等值运算符。因为多数连接都是等值连接，所以我们通常省略这种说明。）
+
 The output of an inner join is a new data frame that contains the key, the x values, and the y values. We use `by` to tell dplyr which variable is the key:
+
+内连接的结果是一个新数据框，其中包含键、x 值和 y 值。我们使用 by 参数告诉 dplyr 哪个变量是键：
 
 ```{r}
 x %>% 
@@ -251,17 +347,29 @@ x %>%
 
 The most important property of an inner join is that unmatched rows are not included in the result. This means that generally inner joins are usually not appropriate for use in analysis because it's too easy to lose observations.
 
-### Outer joins {#outer-join}
+内连接最重要的性质是，没有匹配的行不会包含在结果中。这意味着内连接一般不适合在分析中使用，因为太容易丢失观测了。
+
+### Outer joins | 外连接 {#outer-join}
 
 An inner join keeps observations that appear in both tables. An __outer join__ keeps observations that appear in at least one of the tables. There are three types of outer joins:
 
+内连接保留同时存在于两个表中的观测，外连接则保留至少存在于一个表中的观测。外连接有 3 种类型。
+
 * A __left join__ keeps all observations in `x`.
+•	左连接：保留 x 中的所有观测。
+
 * A __right join__ keeps all observations in `y`.
+•	右连接：保留 y 中的所有观测
+
 * A __full join__ keeps all observations in `x` and `y`.
+•	全连接：保留 x 和 y 中的所有观测。
 
 These joins work by adding an additional "virtual" observation to each table. This observation has a key that always matches (if no other key matches), and a value filled with `NA`.
 
+这些连接会向每个表中添加额外的“虚拟”观测，这个观测拥有总是匹配的键（如果没有其他键可匹配的话），其值则用 NA 来填充。
+
 Graphically, that looks like:
+图形表示如下所示。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-outer.png")
@@ -269,7 +377,11 @@ knitr::include_graphics("diagrams/join-outer.png")
 
 The most commonly used join is the left join: you use this whenever you look up additional data from another table, because it preserves the original observations even when there isn't a match. The left join should be your default join: use it unless you have a strong reason to prefer one of the others.
 
+最常用的连接是左连接：只要想从另一张表中添加数据，就可以使用左连接，因为它会保留原表中的所有观测，即使它没有匹配。左连接应该是你的默认选择，除非有足够充分的理由选择其他的连接方式。
+
 Another way to depict the different types of joins is with a Venn diagram:
+
+表示不同类型连接的另一种方式是使用维恩图。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-venn.png")
@@ -277,13 +389,19 @@ knitr::include_graphics("diagrams/join-venn.png")
 
 However, this is not a great representation. It might jog your memory about which join preserves the observations in which table, but it suffers from a major limitation: a Venn diagram can't show what happens when keys don't uniquely identify an observation.
 
-### Duplicate keys {#join-matches}
+但是这并不是一种非常好的表示方式。虽然可以说明哪种连接会保留哪个表中的观测，但它具有非常明显的局限性：当键不能唯一标识观测时，维恩图无法表示这种情况。
+
+### Duplicate keys | 重复键 {#join-matches}
 
 So far all the diagrams have assumed that the keys are unique. But that's not always the case. This section explains what happens when the keys are not unique. There are two possibilities:
+
+至今为止，所有图都假设键具有唯一性。但情况并非总是如此。本节说明了当键不唯一时将会发生的两种情况。
 
 1.  One table has duplicate keys. This is useful when you want to
     add in additional information as there is typically a one-to-many
     relationship.
+    
+    •	一张表中具有重复键。通常来说，当存在一对多关系时，如果你想要向表中添加额外信息，就会出现这种情况。
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("diagrams/join-one-to-many.png")
@@ -292,6 +410,8 @@ So far all the diagrams have assumed that the keys are unique. But that's not al
     Note that I've put the key column in a slightly different position
     in the output. This reflects that the key is a primary key in `y`
     and a foreign key in `x`.
+    
+    注意，我们稍稍调整了键列在结果中的位置，这样可以反映出这个键是 y 的主键、x 的外键：
 
     ```{r}
     x <- tribble(
@@ -312,6 +432,8 @@ So far all the diagrams have assumed that the keys are unique. But that's not al
 1.  Both tables have duplicate keys. This is usually an error because in
     neither table do the keys uniquely identify an observation. When you join
     duplicated keys, you get all possible combinations, the Cartesian product:
+    
+    •	两张表中都有重复键。这通常意味着出现了错误，因为键在任意一张表中都不能唯一标识观测。当连接这样的重复键时，你会得到所有可能的组合，即笛卡儿积：
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("diagrams/join-many-to-many.png")
@@ -335,14 +457,18 @@ So far all the diagrams have assumed that the keys are unique. But that's not al
     left_join(x, y, by = "key")
     ```
 
-### Defining the key columns {#join-by}
+### Defining the key columns | 定义键列 {#join-by}
 
 So far, the pairs of tables have always been joined by a single variable, and that variable has the same name in both tables. That constraint was encoded by `by = "key"`. You can use other values for `by` to connect the tables in other ways:
+
+迄今为止，两张表都是通过一个单变量来连接的，而且这个变量在两张表中具有同样的名称。这种限制条件是通过 by = "key" 来实现的。你还可以对 by 设置其他值，以另外的方式来连接表。
 
   * The default, `by = NULL`, uses all variables that appear in both tables,
     the so called __natural__ join. For example, the flights and weather tables
     match on their common variables: `year`, `month`, `day`, `hour` and
     `origin`.
+    
+    •	默认值 by = NULL。这会使用存在于两个表中的所有变量，这种方式称为自然连接。例如， 匹配航班表和天气表时使用的就是其公共变量：year、month、day、hour 和 origin。
 
     ```{r}
     flights2 %>% 
@@ -353,6 +479,8 @@ So far, the pairs of tables have always been joined by a single variable, and th
     some of the common variables. For example, `flights` and `planes` have
     `year` variables, but they mean different things so we only want to join by
     `tailnum`.
+    
+    •	字符向量 by = "x"。这种方式与自然连接很相似，但只使用某些公共变量。例如， flights 和 planes 表中都有 year 变量，但是它们的意义不同，因此我们只通过 tailnum 进行连接：
 
     ```{r}
     flights2 %>% 
@@ -362,15 +490,21 @@ So far, the pairs of tables have always been joined by a single variable, and th
     Note that the `year` variables (which appear in both input data frames,
     but are not constrained to be equal) are disambiguated in the output with
     a suffix.
+    
+    注意，结果中的 year 变量（同时存在于两个输入数据框中，但并不要求相等）添加了一个后缀，以消除歧义。
 
   * A named character vector: `by = c("a" = "b")`. This will
     match variable `a` in table `x` to variable `b` in table `y`. The
     variables from `x` will be used in the output.
+    
+    •	命名字符向量 by = c("a" = "b")。这种方式会匹配 x 表中的 a 变量和 y 表中的 b 变量。输出结果中使用的是 x 表中的变量。
 
     For example, if we want to draw a map we need to combine the flights data
     with the airports data which contains the location (`lat` and `lon`) of
     each airport. Each flight has an origin and destination `airport`, so we
     need to specify which one we want to join to:
+    
+    例如，如果想要画出一幅地图，那么我们就需要在航班数据中加入机场数据，后者包含了每个机场的位置（lat 和 lon）。因为每次航班都有起点机场和终点机场，所以需要指定使用哪个机场进行连接：
 
     ```{r}
     flights2 %>% 
@@ -380,11 +514,13 @@ So far, the pairs of tables have always been joined by a single variable, and th
       left_join(airports, c("origin" = "faa"))
     ```
 
-### Exercises
+### Exercises | 练习
 
 1.  Compute the average delay by destination, then join on the `airports`
     data frame so you can show the spatial distribution of delays. Here's an
     easy way to draw a map of the United States:
+    
+    计算出每个目的地的平均延误时间，然后与 airports 数据框连接，从而展示出延误的空间分布。以下是画出美国地图的一种简单方法。
 
     ```{r, eval = FALSE}
     airports %>%
@@ -397,19 +533,27 @@ So far, the pairs of tables have always been joined by a single variable, and th
 
     (Don't worry if you don't understand what `semi_join()` does --- you'll
     learn about it next.)
+    
+    （别担心不理解 semi_join() 的意义，下一节就会对其进行介绍。）
 
     You might want to use the `size` or `colour` of the points to display
     the average delay for each airport.
+    
+    你可以使用数据点的 size 或 color 属性来表示每个机场的平均延误时间。
 
 1.  Add the location of the origin _and_ destination (i.e. the `lat` and `lon`)
     to `flights`.
+    
+    将起点机场和终点机场的位置信息（即 lat 和 lon）添加到 flights 中。
 
-1.  Is there a relationship between the age of a plane and its delays?
+1.  Is there a relationship between the age of a plane and its delays? 飞机的机龄和延误时间有关系吗？
 
-1.  What weather conditions make it more likely to see a delay?
+1.  What weather conditions make it more likely to see a delay? (1)	什么样的天气状况更容易出现延误？
 
 1.  What happened on June 13 2013? Display the spatial pattern of delays,
     and then use Google to cross-reference with the weather.
+    
+    (1)	2013 年 6 月 13 日发生了什么情况？展示出这天延误时间的空间模式，并使用 Google 说明一下这天的天气状况。
 
     ```{r, eval = FALSE, include = FALSE}
     worst <- filter(flights, !is.na(dep_time), month == 6, day == 13)
@@ -424,9 +568,11 @@ So far, the pairs of tables have always been joined by a single variable, and th
         coord_quickmap()
     ```
 
-### Other implementations
+### Other implementations | 其他实现方式
 
 `base::merge()` can perform all four types of mutating join:
+
+base::merge() 函数可以实现所有 4 种合并连接操作。
 
 dplyr              | merge
 -------------------|-------------------------------------------
@@ -437,7 +583,11 @@ dplyr              | merge
 
 The advantages of the specific dplyr verbs is that they more clearly convey the intent of your code: the difference between the joins is really important but concealed in the arguments of `merge()`. dplyr's joins are considerably faster and don't mess with the order of the rows.
 
+dplyr 连接操作的优点是，可以更加清晰地表达出代码的意图：不同连接间的区别确实非常重要，但隐藏在 merge() 函数的参数中了。dplyr 连接操作的速度明显更快，而且不会弄乱行的顺序。
+
 SQL is the inspiration for dplyr's conventions, so the translation is straightforward:
+
+因为 SQL 是 dplyr 连接操作的灵感来源，所以二者之间的转换非常简单明了。
 
 dplyr                        | SQL
 -----------------------------|-------------------------------------------
@@ -448,16 +598,25 @@ dplyr                        | SQL
 
 Note that "INNER" and "OUTER" are optional, and often omitted.
 
+注意，"INNER" 和 "OUTER" 是可选的，经常省略。
+
 Joining different variables between the tables, e.g. `inner_join(x, y, by = c("a" = "b"))` uses a slightly different syntax in SQL: `SELECT * FROM x INNER JOIN y ON x.a = y.b`. As this syntax suggests, SQL supports a wider  range of join types than dplyr because you can connect the tables using constraints other than equality (sometimes called non-equijoins).
 
-## Filtering joins {#filtering-joins}
+在表间连接不同变量（如 inner_join(x, y, by = c("a" = "b"))）时，SQL 的语法与以上有些区别：SELECT * FROM x INNER JOIN y ON x.a = y.b。从这种语法可以看出，与 dplyr 相比，SQL 支持的连接类型更广泛，因为 SQL 可以使用除相等关系外的其他逻辑关系来连接两个表（有时这称为非等值连接）。
+
+## Filtering joins | 筛选连接 {#filtering-joins}
 
 Filtering joins match observations in the same way as mutating joins, but affect the observations, not the variables. There are two types:
 
-* `semi_join(x, y)` __keeps__ all observations in `x` that have a match in `y`.
-* `anti_join(x, y)` __drops__ all observations in `x` that have a match in `y`.
+筛选连接匹配观测的方式与合并连接相同，但前者影响的是观测，而不是变量。筛选连接有两种类型。
+
+* `semi_join(x, y)` __keeps__ all observations in `x` that have a match in `y`. 保留 x 表中与 y 表中的观测相匹配的所有观测。
+
+* `anti_join(x, y)` __drops__ all observations in `x` that have a match in `y`. 丢弃 x 表中与 y 表中的观测相匹配的所有观测。
 
 Semi-joins are useful for matching filtered summary tables back to the original rows. For example, imagine you've found the top ten most popular destinations:
+
+对数据表进行筛选或摘要统计后，如果想要使用表中原来的行来匹配筛选或摘要结果，那么半连接是非常有用的。例如，假设你已经找出了最受欢迎的前 10 个目的地：
 
 ```{r}
 top_dest <- flights %>%
@@ -468,6 +627,8 @@ top_dest
 
 Now you want to find each flight that went to one of those destinations. You could construct a filter yourself:
 
+现在想要找出飞往这些目的地的所有航班，你可以自己构造一个筛选器：
+
 ```{r}
 flights %>% 
   filter(dest %in% top_dest$dest)
@@ -475,7 +636,11 @@ flights %>%
 
 But it's difficult to extend that approach to multiple variables. For example, imagine that you'd found the 10 days with highest average delays. How would you construct the filter statement that used `year`, `month`, and `day` to match it back to `flights`?
 
+但这种方法很难扩展到多个变量。例如，假设已经找出了平均延误时间最长的 10 天，那么你应该如何使用 year、month 和 day 来构造筛选语句，才能在 flights 中找出这 10 天的观测？
+
 Instead you can use a semi-join, which connects the two tables like a mutating join, but instead of adding new columns, only keeps the rows in `x` that have a match in `y`:
+
+此时你应该使用半连接，它可以像合并连接一样连接两个表，但不添加新列，而是保留 x表中那些可以匹配 y 表的行：
 
 ```{r}
 flights %>% 
@@ -483,6 +648,7 @@ flights %>%
 ```
 
 Graphically, a semi-join looks like this:
+半连接的图形表示如下所示。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-semi.png")
@@ -490,11 +656,15 @@ knitr::include_graphics("diagrams/join-semi.png")
 
 Only the existence of a match is important; it doesn't matter which observation is matched. This means that filtering joins never duplicate rows like mutating joins do:
 
+重要的是存在匹配，匹配了哪条观测则无关紧要。这说明筛选连接不会像合并连接那样造成重复的行。
+
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-semi-many.png")
 ```
 
 The inverse of a semi-join is an anti-join. An anti-join keeps the rows that _don't_ have a match:
+
+半连接的逆操作是反连接。反连接保留 x 表中那些没有匹配 y 表的行。
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/join-anti.png")
@@ -502,38 +672,55 @@ knitr::include_graphics("diagrams/join-anti.png")
 
 Anti-joins are useful for diagnosing join mismatches. For example, when connecting `flights` and `planes`, you might be interested to know that there are many `flights` that don't have a match in `planes`:
 
+反连接可以用于诊断连接中的不匹配。例如，在连接flights 和 planes 时，你可能想知道flights 中是否有很多行在 planes 中没有匹配记录：
+
 ```{r}
 flights %>%
   anti_join(planes, by = "tailnum") %>%
   count(tailnum, sort = TRUE)
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  What does it mean for a flight to have a missing `tailnum`? What do the
     tail numbers that don't have a matching record in `planes` have in common?
     (Hint: one variable explains ~90% of the problems.)
+    
+    如果一条航班信息的 tailnum 是缺失值，这说明什么？如果机尾编号在 planes 中没有匹配的记录，一般是什么情况？（提示：有一个变量可以解释约 90% 的这种情况。）
 
 1.  Filter flights to only show flights with planes that have flown at least 100
     flights.
+    
+    对航班信息进行筛选，只保留至少有 100 次飞行记录的飞机的航班信息。
 
 1.  Combine `fueleconomy::vehicles` and `fueleconomy::common` to find only the
     records for the most common models.
+    
+    使用 fueleconomy::vehicles 和 fueleconomy::common 找出那些用于最常用模型的记录。
 
 1.  Find the 48 hours (over the course of the whole year) that have the worst
     delays. Cross-reference it with the `weather` data. Can you see any
     patterns?
+    
+    找出这一整年中航班延误最严重的 48 小时。与 weather 数据互相参照，你能找出某种模式吗？
 
 1.  What does `anti_join(flights, airports, by = c("dest" = "faa"))` tell you?
     What does `anti_join(airports, flights, by = c("faa" = "dest"))` tell you?
+    
+    你能说出 anti_join(flights, airports, by = c("dest" = "faa")) 这条语句的意义吗？
+anti_join(airports, flights, by = c("faa" = "dest")) 这条语句的意义呢？
 
 1.  You might expect that there's an implicit relationship between plane
     and airline, because each plane is flown by a single airline. Confirm
     or reject this hypothesis using the tools you've learned above.
+    
+    或许你认为飞机和航空公司之间存在着某种隐含关系，因为每架飞机都属于一个航空公司。使用你在前面章节中学到的工具来确认或否定这个假设。
 
-## Join problems
+## Join problems | 连接中的问题
 
 The data you've been working with in this chapter has been cleaned up so that you'll have as few problems as possible. Your own data is unlikely to be so nice, so there are a few things that you should do with your own data to make your joins go smoothly.
+
+因为本章中所用的数据已经整理过了，所以使用时基本不会出现问题。在处理自己的数据时，感觉可不见得会有这么好。为了在使用自己的数据时可以顺畅地进行各种连接，你需要注意以下几点。
 
 1.  Start by identifying the variables that form the primary key in each table.
     You should usually do this based on your understanding of the data, not
@@ -542,9 +729,13 @@ The data you've been working with in this chapter has been cleaned up so that yo
     what they mean, you might get (un)lucky and find a combination that's
     unique in your current data but the relationship might not be true in
     general.
+    
+    首先，需要找出每个表中可以作为主键的变量。一般应该基于对数据的理解来确定主键，而不是凭经验寻找能作为唯一标识符的变量组合。如果在确定主键时根本没有考虑过其意义，那么就可能步入歧途，虽然可以找出具有唯一性的变量组合，但它与数据间的关系却可能不是真实的。
 
     For example, the altitude and longitude uniquely identify each airport,
     but they are not good identifiers!
+    
+    例如，经度和纬度虽然能够唯一标识每个机场，但却不是良好的标识符！
 
     ```{r}
     airports %>% count(alt, lon) %>% filter(n > 1)
@@ -552,27 +743,37 @@ The data you've been working with in this chapter has been cleaned up so that yo
 
 1.  Check that none of the variables in the primary key are missing. If
     a value is missing then it can't identify an observation!
+    
+    确保主键中的每个变量都没有缺失值。如果有缺失值，那么这个变量就不能标识观测！
 
 1.  Check that your foreign keys match primary keys in another table. The
     best way to do this is with an `anti_join()`. It's common for keys
     not to match because of data entry errors. Fixing these is often a lot of
     work.
+    
+    检查外键是否与另一张表的主键相匹配。最好的方法是使用 anti_join()，由于数据录入错误，外键和主键不匹配的情况很常见。解决这种问题通常需要大量工作。
 
     If you do have missing keys, you'll need to be thoughtful about your
     use of inner vs. outer joins, carefully considering whether or not you
     want to drop rows that don't have a match.
+    
+    如果键中确实有缺失值，那么你就要深思熟虑一下，是应该使用内连接还是外连接，此外，是否应该丢弃那些没有匹配记录的行。
 
 Be aware that simply checking the number of rows before and after the join is not sufficient to ensure that your join has gone smoothly. If you have an inner join with duplicate keys in both tables, you might get unlucky as the number of dropped rows might exactly equal the number of duplicated rows!
 
-## Set operations {#set-operations}
+注意，仅凭检查连接前后的行数是不足以确保连接能够顺畅运行的。如果进行了两张表都有重复键的内连接，那么就很可能不幸地遇到这种情况：被丢弃的行的数量正好等于重复行的数量！
+
+## Set operations | 集合操作 {#set-operations}
 
 The final type of two-table verb are the set operations. Generally, I use these the least frequently, but they are occasionally useful when you want to break a single complex filter into simpler pieces. All these operations work with a complete row, comparing the values of every variable. These expect the `x` and `y` inputs to have the same variables, and treat the observations like sets:
 
-* `intersect(x, y)`: return only observations in both `x` and `y`.
-* `union(x, y)`: return unique observations in `x` and `y`.
-* `setdiff(x, y)`: return observations in `x`, but not in `y`.
+两表之间的最后一种操作就是集合操作。我们通常很少使用这种操作，但如果你想要将一个复杂的筛选操作分解为多个简单部分时，它们还是有些用处的。所有集合操作都是作用于整行的，比较的是每个变量的值。集合操作需要 x 和y 具有相同的变量，并将观测按照集合来处理。
 
-Given this simple data:
+* `intersect(x, y)`: return only observations in both `x` and `y`. 返回既在 x 表，又在 y 表中的观测。
+* `union(x, y)`: return unique observations in `x` and `y`. 返回 x 表或 y 表中的唯一观测。
+* `setdiff(x, y)`: return observations in `x`, but not in `y`. 返回在 x 表，但不在 y 表中的观测。
+
+Given this simple data: 给定以下简单数据：
 
 ```{r}
 df1 <- tribble(
@@ -587,12 +788,13 @@ df2 <- tribble(
 )
 ```
 
-The four possibilities are:
+The four possibilities are: 4 种可能的集合操作为：
 
 ```{r}
 intersect(df1, df2)
 
 # Note that we get 3 rows, not 4
+# 注意，我们得到了3行，而不是4行
 union(df1, df2)
 
 setdiff(df1, df2)

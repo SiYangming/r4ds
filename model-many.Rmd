@@ -1,43 +1,65 @@
-# Many models
+# Many models | 处理多个模型
 
-## Introduction
+## Introduction | 简介
 
 In this chapter you're going to learn three powerful ideas that help you to work with large numbers of models with ease:
 
+本章将介绍 3 种功能强大的方法来帮助我们游刃有余地处理大量模型。
+
 1.  Using many simple models to better understand complex datasets.
+
+• 使用多个简单模型来更好地理解复杂数据集。
 
 1.  Using list-columns to store arbitrary data structures in a data frame.
     For example, this will allow you to have a column that contains linear 
     models.
    
+   • 使用列表列在数据框中保存任意数据结构。例如，可以通过这种方法让数据列中包含线性模型。
+   
 1.  Using the __broom__ package, by David Robinson, to turn models into tidy 
     data. This is a powerful technique for working with large numbers of models
     because once you have tidy data, you can apply all of the techniques that 
     you've learned about earlier in the book.
+    
+    • 使用David Robinson 开发的broom 包将模型转换为整洁数据。这是一种非常强大的技术， 可以处理大量模型，因为一旦有了整洁数据，我们在本书前面学到的所有技术就有用武之地了。
 
 We'll start by diving into a motivating example using data about life expectancy around the world. It's a small dataset but it illustrates how important modelling can be for improving your visualisations. We'll use a large number of simple models to partition out some of the strongest signals so we can see the subtler signals that remain. We'll also see how model summaries can help us pick out outliers and unusual trends.
 
 The following sections will dive into more detail about the individual techniques:
 
+以下各节将详细介绍本章要使用的各种技术。
+
 1. In [list-columns], you'll learn more about the list-column data structure,
    and why it's valid to put lists in data frames.
    
+   介绍关于列表列的数据结构知识，以及可以将列表放在数据框中的原因。
+   
 1. In [creating list-columns], you'll learn the three main ways in which you'll
    create list-columns.
+   
+   介绍创建列表列的 3 种主要方法。
    
 1. In [simplifying list-columns] you'll learn how to convert list-columns back
    to regular atomic vectors (or sets of atomic vectors) so you can work
    with them more easily.
    
+   介绍如何将列表列还原为常用的原子向量（或原子向量集合），以便更容易进行处理。
+   
 1. In [making tidy data with broom], you'll learn about the full set of tools
    provided by broom, and see how they can be applied to other types of 
    data structure.
+   
+   介绍由 broom 包提供的一整套工具，以及它们在其他类型数据结构上的使用方法。
 
 This chapter is somewhat aspirational: if this book is your first introduction to R, this chapter is likely to be a struggle. It requires you to have deeply internalised ideas about modelling, data structures, and iteration. So don't worry if you don't get it --- just put this chapter aside for a few months, and come back when you want to stretch your brain. 
 
-### Prerequisites
+本章属于进阶内容，如果本书是你的第一本 R 语言书，那么本章将是一个严峻挑战。它需要你对建模、数据结构和迭代都有深刻理解。因此，如果看不懂本章内容，也不要担心——先将它放在一边，如果几个月后想做做思维训练，就再来读读看。
+
+### Prerequisites | 准备工作
 
 Working with many models requires many of the packages of the tidyverse (for data exploration, wrangling, and programming) and modelr to facilitate modelling.
+
+处理多个模型需要 tidyverse 中的多个包（分别用于数据探索、纷争和编程），以及帮助建模的 modelr 包。
 
 ```{r setup, message = FALSE}
 library(modelr)
@@ -154,7 +176,7 @@ by_country %>%
 
 If your list of data frames and list of models were separate objects, you have to remember that whenever you re-order or subset one vector, you need to re-order or subset all the others in order to keep them in sync. If you forget, your code will continue to work, but it will give the wrong answer!
 
-### Unnesting
+### Unnesting 
 
 Previously we computed the residuals of a single model with a single dataset. Now we have 142 data frames and 142 models. To compute the residuals, we need to call `add_residuals()` with each model-data pair:
 
@@ -196,7 +218,7 @@ resids %>%
 
 It looks like we've missed some mild patterns. There's also something interesting going on in Africa: we see some very large residuals which suggests our model isn't fitting so well there. We'll explore that more in the next section, attacking it from a slightly different angle.
 
-### Model quality
+### Model quality | 模型质量
 
 Instead of looking at the residuals from the model, we could look at some general measurements of model quality. You learned how to compute some specific measures in the previous chapter. Here we'll show a different approach using the broom package. The broom package provides a general set of functions to turn models into tidy data. Here we'll use `broom::glance()` to extract some model quality metrics. If we apply it to a model, we get a data frame with a single row:
 
@@ -251,7 +273,7 @@ gapminder %>%
 
 We see two main effects here: the tragedies of the HIV/AIDS epidemic and the Rwandan genocide.
 
-### Exercises
+### Exercises | 练习
 
 1.  A linear trend seems to be slightly too simple for the overall trend.
     Can you do better with a quadratic polynomial? How can you interpret
@@ -269,15 +291,19 @@ We see two main effects here: the tragedies of the HIV/AIDS epidemic and the Rwa
     It's possible to avoid this join if we use `unnest()` instead of 
     `unnest(.drop = TRUE)`. How?
 
-## List-columns
+## List-columns | 列表列
 
 Now that you've seen a basic workflow for managing many models, let's dive back into some of the details. In this section, we'll explore the list-column data structure in a little more detail. It's only recently that I've really appreciated the idea of the list-column. List-columns are implicit in the definition of the data frame: a data frame is a named list of equal length vectors. A list is a vector, so it's always been legitimate to use a list as a column of a data frame. However, base R doesn't make it easy to create list-columns, and `data.frame()` treats a list as a list of columns:.
+
+本节将详细地研究列表列的数据结构。直到最近，我们才真正领会列表列的设计思想。列表列是隐式定义在数据框中的：数据框是由相同长度的向量组成的命名列表。一个列表就是一个向量，因此将列表作为数据框的一列是完全合理的。但是，在R 基础包中创建列表列是非常困难的，而且 data.frame() 函数是将列表作为列的列表来处理的：
 
 ```{r}
 data.frame(x = list(1:3, 3:5))
 ```
 
 You can prevent `data.frame()` from doing this with `I()`, but the result doesn't print particularly well:
+
+要想 data.frame() 不这样处理，可以使用 I() 函数，但是输出结果却是难以理解的：
 
 ```{r}
 data.frame(
@@ -288,6 +314,8 @@ data.frame(
 
 Tibble alleviates this problem by being lazier (`tibble()` doesn't modify its inputs) and by providing a better print method:
 
+tibble 更懒惰一些（tibble() 不对输入进行修改），但更容易创建列表列，输出结果也更容易理解：
+
 ```{r}
 tibble(
   x = list(1:3, 3:5), 
@@ -296,6 +324,8 @@ tibble(
 ```
 
 It's even easier with `tribble()` as it can automatically work out that you need a list:
+
+使用 tribble() 函数则更容易，因为它可以自动识别出你想要的列表：
 
 ```{r}
 tribble(
@@ -307,39 +337,65 @@ tribble(
 
 List-columns are often most useful as intermediate data structure. They're hard to work with directly, because most R functions work with atomic vectors or data frames, but the advantage of keeping related items together in a data frame is worth a little hassle.
 
+列表列的最大用处是作为一种中间数据结构。要想直接处理列表列是比较困难的，因为大多数 R 函数只能处理原子向量或数据框。但列表列可以将相关项目统一保存在一个数据框中，仅这一个优点就值得我们花些精力来学习它。
+
 Generally there are three parts of an effective list-column pipeline:
+
+一般来说，要想有效地使用列表列，需要 3 个步骤。
 
 1.  You create the list-column using one of `nest()`, `summarise()` + `list()`,
     or `mutate()` + a map function, as described in [Creating list-columns].
+    
+    使用 19.3 节中介绍的 3 种方法之一来创建列表列。这 3 种方法是：nest()、summarize() + list() 以及 mutate() + 映射函数。
 
 1.  You create other intermediate list-columns by transforming existing
     list columns with `map()`, `map2()` or `pmap()`. For example, 
     in the case study above, we created a list-column of models by transforming
     a list-column of data frames.
     
+    通过使用 map()、map2() 或 pmap() 函数转换现有列表列，创建一个中间列表列。例如， 在前面的案例研究中，我们通过转换数据框的列表列创建了一个模型列表列。
+    
 1.  You simplify the list-column back down to a data frame or atomic vector,
     as described in [Simplifying list-columns].
+    将列表列简化还原成数据框或原子向量。
+    
 
-## Creating list-columns
+## Creating list-columns | 创建列表列
 
 Typically, you won't create list-columns with `tibble()`. Instead, you'll create them from regular columns, using one of three methods: 
+
+通常来说，我们不会使用 tibble() 函数创建列表列，而是使用以下 3 种方法之一，根据普通列进行创建。
 
 1.  With `tidyr::nest()` to convert a grouped data frame into a nested data 
     frame where you have list-column of data frames.
     
+    使用 tidyr::nest() 函数将分组数据框转换为嵌套数据框，嵌套数据框中会包含数据框列表列。
+    
 1.  With `mutate()` and vectorised functions that return a list.
 
-1.  With `summarise()` and summary functions that return multiple results. 
+使用 mutate() 函数以及能够返回列表的向量化函数。
+
+1.  With `summarise()` and summary functions that return multiple results.
+
+使用 summarize() 函数以及能够返回多个结果的摘要函数。
 
 Alternatively, you might create them from a named list, using `tibble::enframe()`.
 
+另外，我们还可以使用 tibble::enframe() 函数根据命名列表来创建列表列。
+
 Generally, when creating list-columns, you should make sure they're homogeneous: each element should contain the same type of thing. There are no checks to make sure this is true, but if you use purrr and remember what you've learned about type-stable functions, you should find it happens naturally.
 
-### With nesting
+通常来说，在创建列表列时，应该确保这些列是同质的，即列中的每个元素都包含同样类型的内容。R 不对这种要求进行检查，但如果想要对列表列使用 purrr 函数或者要求类型一致的函数时，你就会发现这种要求是顺理成章的。
+
+### With nesting | 使用嵌套
 
 `nest()` creates a nested data frame, which is a data frame with a list-column of data frames. In a nested data frame each row is a meta-observation: the other columns give variables that define the observation (like country and continent above), and the list-column of data frames gives the individual observations that make up the meta-observation.
 
+可以使用 nest() 函数创建嵌套数据框，即带有数据框列表列的数据框。在嵌套数据框中， 每行都是一个元观测：除列表列外的列给出了定义观测的变量，数据框中的列表列则给出了组成元观测的具体观测。
+
 There are two ways to use `nest()`. So far you've seen how to use it with a grouped data frame. When applied to a grouped data frame, `nest()` keeps the grouping columns as is, and bundles everything else into the list-column:
+
+nest() 函数有两种使用方式。当用于分组数据框时，nest() 函数会保留用于分组的列，而将其他所有数据归并到列表列中。
 
 ```{r}
 gapminder %>% 
@@ -349,14 +405,18 @@ gapminder %>%
 
 You can also use it on an ungrouped data frame, specifying which columns you want to nest:
 
+还可以在未分组数据框上使用 nest()，此时需要指定嵌套哪些列。
+
 ```{r}
 gapminder %>% 
   nest(data = c(year:gdpPercap))
 ```
 
-### From vectorised functions
+### From vectorised functions | 使用向量化函数
 
 Some useful functions take an atomic vector and return a list. For example, in [strings] you learned about `stringr::str_split()` which takes a character vector and returns a list of character vectors. If you use that inside mutate, you'll get a list-column:
+
+有些常用函数接受一个原子向量并返回一个列表。例如，我们在第 10 章中学习了stringr::str_split() 函数，它接受一个字符向量，并返回字符向量的一个列表。如果在mutate() 函数中使用这个函数，那么就会得到一个列表列：
 
 ```{r}
 df <- tribble(
@@ -371,6 +431,8 @@ df %>%
 
 `unnest()` knows how to handle these lists of vectors:
 
+unnest() 函数知道如何处理这些向量列表：
+
 ```{r}
 df %>% 
   mutate(x2 = stringr::str_split(x1, ",")) %>% 
@@ -379,7 +441,11 @@ df %>%
 
 (If you find yourself using this pattern a lot, make sure to check out `tidyr::separate_rows()` which is a wrapper around this common pattern).
 
+（如果会大量使用这种嵌套还原功能，请一定研究一下 tidyr::separate_rows() 函数，其包装了这种常见的、将一列拆分成多行的功能。）
+
 Another example of this pattern is using the `map()`, `map2()`, `pmap()` from purrr. For example, we could take the final example from [Invoking different functions] and rewrite it to use `mutate()`:
+
+使用向量化函数创建列表列的另一个示例是使用 purrr 包中的 map()、map2() 和 pmap() 函数。例如，我们再看一下 16.7 节中的“调用不同函数”中的最后一个示例，并重写代码以应用 mutate() 函数：
 
 ```{r}
 sim <- tribble(
@@ -395,9 +461,13 @@ sim %>%
 
 Note that technically `sim` isn't homogeneous because it contains both double and integer vectors. However, this is unlikely to cause many problems since integers and doubles are both numeric vectors.
 
-### From multivalued summaries
+注意，从技术角度来说，sim 并不是同质的，因为其中既有双精度型向量，也有整型向量。但是，因为整型向量和双精度型向量都是数值型向量，所以不会有什么大问题。
+
+### From multivalued summaries | 使用多值摘要
 
 One restriction of `summarise()` is that it only works with summary functions that return a single value. That means that you can't use it with functions like `quantile()` that return a vector of arbitrary length:
+
+summarize() 函数的一个局限性是，只能使用返回单一值的摘要函数。这意味着我们不能使用像 quantile() 这样的函数，因为它会返回任意长度的向量：
 
 ```{r, error = TRUE}
 mtcars %>% 
@@ -407,6 +477,8 @@ mtcars %>%
 
 You can however, wrap the result in a list! This obeys the contract of `summarise()`, because each summary is now a list (a vector) of length 1.
 
+然而，你可以将结果包装在一个列表中！这是符合 summarize() 函数的约定的，因为这样每个摘要结果就是一个长度为 1 的列表（向量）了：
+
 ```{r}
 mtcars %>% 
   group_by(cyl) %>% 
@@ -414,6 +486,8 @@ mtcars %>%
 ```
 
 To make useful results with unnest, you'll also need to capture the probabilities:
+
+要想让 unnest() 函数的结果更可用，我们还需要表示出概率：
 
 ```{r}
 probs <- c(0.01, 0.25, 0.5, 0.75, 0.99)
@@ -423,9 +497,11 @@ mtcars %>%
   unnest(c(p, q))
 ```
 
-### From a named list
+### From a named list | 使用命名列表
 
 Data frames with list-columns provide a solution to a common problem: what do you do if you want to iterate over both the contents of a list and its elements? Instead of trying to jam everything into one object, it's often easier to make a data frame: one column can contain the elements, and one column can contain the list.  An easy way to create such a data frame from a list is `tibble::enframe()`.  
+
+带有列表列的数据框可以解决一种常见问题：如何同时对列表的元素及元素内容进行迭代？相对于将所有元素内容塞进一个对象，更容易的一种方法是创建一个数据框：一列包含元素名称，另一列包含元素中的列表内容。创建这种数据框的一种简单方法是使用tibble::enframe() 函数：
 
 ```{r}
 x <- list(
@@ -440,7 +516,11 @@ df
 
 The advantage of this structure is that it generalises in a straightforward way - names are useful if you have character vector of metadata, but don't help if you have other types of data, or multiple vectors.
 
+这种结构的优点是可以用非常简单的方式进行扩展，如果有元数据字符向量，那么名称是很有用的，但如果有其他类型的数据或多个向量，那么名称就没有什么作用了。
+
 Now if you want to iterate over names and values in parallel, you can use `map2()`:
+
+如果想要同时对名称和值进行迭代，那么可以使用 map2() 函数：
 
 ```{r}
 df %>% 
@@ -449,16 +529,22 @@ df %>%
   )
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  List all the functions that you can think of that take a atomic vector and 
     return a list.
     
+    列举你能想到的接受一个原子向量并返回一个列表的所有函数。
+    
 1.  Brainstorm useful summary functions that, like `quantile()`, return
     multiple values.
     
+    进行头脑风暴，列举返回多个值的所有摘要函数，如 quantile()。
+    
 1.  What's missing in the following data frame? How does `quantile()` return
     that missing piece? Why isn't that helpful here?
+    
+    以下数据框丢失了什么信息？如何使 quantile() 函数返回那些丢失的数据？为什么那些数据在这里不是很重要？
 
     ```{r}
     mtcars %>% 
@@ -468,6 +554,7 @@ df %>%
     ```
 
 1.  What does this code do? Why might might it be useful?
+以下代码的作用是什么？为什么它或许会有用？
 
     ```{r, eval = FALSE}
     mtcars %>% 
@@ -475,21 +562,30 @@ df %>%
       summarise_all(list(list))
     ```
 
-## Simplifying list-columns
+## Simplifying list-columns | 简化列表列
 
 To apply the techniques of data manipulation and visualisation you've learned in this book, you'll need to simplify the list-column back to a regular column (an atomic vector), or set of columns. The technique you'll use to collapse back down to a simpler structure depends on whether you want a single value per element, or multiple values:
+
+为了应用在本书中学到的数据处理和可视化技术，我们需要将列表列简化还原为一个普通列（即一个原子向量）或一组普通列。在将列表列还原为简单结构时，根据想要将列表列的一个元素转换为单个值还是多个值，再决定使用哪种技术。
 
 1.  If you want a single value, use `mutate()` with `map_lgl()`, 
     `map_int()`, `map_dbl()`, and `map_chr()` to create an atomic vector.
     
+    • 如果想要得到单个值，就使用 mutate() 以及 map_lgl()、map_int()、map_dbl() 和 map_chr() 函数来创建一个原子向量。
+    
 1.  If you want many values, use `unnest()` to convert list-columns back
     to regular columns, repeating the rows as many times as necessary.
+    
+    • 如果想要得到多个值，就使用 unnest() 函数将列表列还原为普通列，这样可以按需要将行多次重复。
 
 These are described in more detail below.
+以下各节将更加详细地介绍这两种技术。
 
-### List to vector
+### List to vector | 列表转换为向量
 
 If you can reduce your list column to an atomic vector then it will be a regular column. For example, you can always summarise an object with its type and length, so this code will work regardless of what sort of list-column you have:
+
+如果可以将列表列缩减为一个原子向量，那么这个原子向量就可以作为一个普通列。例如， 你可以总是使用类型和长度来描述一个对象，因此对于所有列表列，以下代码都可以运行：
 
 ```{r}
 df <- tribble(
@@ -507,7 +603,11 @@ df %>% mutate(
 
 This is the same basic information that you get from the default tbl print method, but now you can use it for filtering. This is a useful technique if you have a heterogeneous list, and want to filter out the parts aren't working for you.
 
+使用默认的表格打印方法同样可以得到这些基本信息，但现在你就可以使用它们进行筛选操作了。如果你有一个异构列表，并且想要筛选掉其中不需要的部分，那么就可以使用这种方法。
+
 Don't forget about the `map_*()` shortcuts - you can use `map_chr(x, "apple")` to extract the string stored in `apple` for each element of `x`. This is useful for pulling apart nested lists into regular columns. Use the `.null` argument to provide a value to use if the element is missing (instead of returning `NULL`):
+
+别忘了，我们还可以使用 map_*() 快捷方式，例如，你可以使用 map_chr(x, "apple") 从 x 的每个元素中提取变量 apple 中的内容。这种方法可以提取嵌套列表中的一部分，并使结果成为普通列。如果元素中有缺失值，还可以使用 .null 参数提供一个返回值（而不是返回 NULL）：
 
 ```{r}
 df <- tribble(
@@ -521,9 +621,11 @@ df %>% mutate(
 )
 ```
 
-### Unnesting
+### Unnesting | 嵌套还原
 
 `unnest()` works by repeating the regular columns once for each element of the list-column. For example, in the following very simple example we repeat the first row 4 times (because there the first element of `y` has length four), and the second row once:
+
+unnest() 函数对列表列中的每个元素都重复一次普通列。例如，在以下这个非常简单的示例中，我们将第一行重复了 4 次（因为 y 中的第一个元素的长度是 4），而第二行只重复了 1 次：
 
 ```{r}
 tibble(x = 1:2, y = list(1:4, 1)) %>% unnest(y)
@@ -531,9 +633,12 @@ tibble(x = 1:2, y = list(1:4, 1)) %>% unnest(y)
 
 This means that you can't simultaneously unnest two columns that contain different number of elements:
 
+这意味着你不能同时还原包含不同数量元素的两个列表列：
+
 ```{r, error = TRUE}
 # Ok, because y and z have the same number of elements in
 # every row
+# 以下代码可以运行，因为y和z每行中的元素数量都相同
 df1 <- tribble(
   ~x, ~y,           ~z,
    1, c("a", "b"), 1:2,
@@ -543,6 +648,7 @@ df1
 df1 %>% unnest(c(y, z))
 
 # Doesn't work because y and z have different number of elements
+# 以下代码不能运行，因为y和z每行中的元素数量不同
 df2 <- tribble(
   ~x, ~y,           ~z,
    1, "a",         1:2,  
@@ -554,24 +660,41 @@ df2 %>% unnest(c(y, z))
 
 The same principle applies when unnesting list-columns of data frames. You can unnest multiple list-cols as long as all the data frames in each row have the same number of rows.
 
-### Exercises
+数据框列表列的还原也遵循同样的原则。只要每行中数据框的行数都相同，那么你就可以同时还原多个列表列。
+
+### Exercises | 练习
 
 1.  Why might the `lengths()` function be useful for creating atomic
     vector columns from list-columns?
     
+    为什么可以使用 lengths() 函数根据列表列创建原子向量？
+    
 1.  List the most common types of vector found in a data frame. What makes
     lists different?
+    
+    列举数据框中最常用的向量类型。列表和数据框有什么不同？
 
-## Making tidy data with broom
+## Making tidy data with broom | 使用broom生成整洁数据
 
 The broom package provides three general tools for turning models into tidy data frames:
+
+broom 包提供了 3 种常用工具，用于将模型转换为整洁数据框。
 
 1.  `broom::glance(model)` returns a row for each model. Each column gives a 
     model summary: either a measure of model quality, or complexity, or a 
     combination of the two.
+    
+    • broom::glance(model) 为每个模型返回一行数据，其中每一列都是模型的一个摘要统计量：要么是模型质量的度量方式，要么是模型复杂度，又或者是二者的组合。
    
 1.  `broom::tidy(model)` returns a row for each coefficient in the model. Each 
     column gives information about the estimate or its variability.
     
+    • broom::tidy(model) 为模型的每个系数返回一行数据，其中每一列都是系数的估计值或变异指标。
+    
 1.  `broom::augment(model, data)` returns a row for each row in `data`, adding
     extra values like residuals, and influence statistics.
+    
+    • broom::augment(model, data) 返回 data 中的每一行，但会添加一些额外信息，如残差以及其他一些有影响的统计量。
+    
+broom 的适用范围很广，支持大量常用建模包所生成的模型。可以搜索并查看一下 broom
+现在支持的模型列表。

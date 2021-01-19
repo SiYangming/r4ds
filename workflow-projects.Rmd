@@ -1,19 +1,30 @@
-# Workflow: projects
+# Workflow: projects | 工作流：项目
 
 One day you will need to quit R, go do something else and return to your analysis the next day. One day you will be working on multiple analyses simultaneously that all use R and you want to keep them separate. One day you will need to bring data from the outside world into R and send numerical results and figures from R back out into the world. To handle these real life situations, you need to make two decisions:
 
+总有一天你会退出 R，做些别的事情，第二天再回过头来继续完成分析工作。总有一天你会使用 R 同时进行多个分析工作，并希望分门别类地保存这些工作。总有一天你会需要从外部世界将数据导入 R，并将数值结果和图表从 R 返回到现实世界。为了解决这些实际生活中的问题，你需要做出以下两个决策。
+
 1.  What about your analysis is "real", i.e. what will you save as your 
     lasting record of what happened?
+    
+    分析中的哪些部分是“真实的”？也就是说，你会将哪些部分保存下来作为持久的记录？
 
 1.  Where does your analysis "live"?
+你的分析工作“位于”哪里？
 
-## What is real?
+## What is real? | 什么是真实的
 
 As a beginning R user, it's OK to consider your environment (i.e. the objects listed in the environment pane) "real". However, in the long run, you'll be much better off if you consider your R scripts as "real". 
 
+作为 R 的一名新手，你可以认为自己的 R 环境（也就是环境窗格中列出的那些对象）是“真实的”。但从长远来看，你最好认为 R 脚本是“真实的”。
+
 With your R scripts (and your data files), you can recreate the environment. It's much harder to recreate your R scripts from your environment! You'll either have to retype a lot of code from memory (making mistakes all the way) or you'll have to carefully mine your R history.
 
+可以通过 R 脚本（以及数据文件）重建 R 环境，但在 R 环境中重建 R 脚本就要困难得多！要么被迫重敲一次内存中的代码（伴随着各种输入错误），要么被迫在 R 历史记录中埋头翻找。
+
 To foster this behaviour, I highly recommend that you instruct RStudio not to preserve your workspace between sessions:
+
+为了培养良好的使用习惯，我们强烈建议你指示 RStudio 不在两次会话间保存工作空间。
 
 ```{r, echo = FALSE, out.width = "75%"}
 knitr::include_graphics("screenshots/rstudio-workspace.png")
@@ -21,22 +32,30 @@ knitr::include_graphics("screenshots/rstudio-workspace.png")
 
 This will cause you some short-term pain, because now when you restart RStudio it will not remember the results of the code that you ran last time. But this short-term pain will save you long-term agony because it forces you to capture all important interactions in your code. There's nothing worse than discovering three months after the fact that you've only stored the results of an important calculation in your workspace, not the calculation itself in your code. 
 
+这样做会让你短期内有些难受，因为 RStudio 在重新启动时无法记住前一次运行代码的结果。但长痛不如短痛，这样做会迫使你将所有重要的交互都写在代码中。如果只是将一次重要计算的结果保存在工作空间中，而不是将计算过程本身保存在代码中，那么 3 个月后你会发现人世间最痛苦的事莫过于此。
+
 There is a great pair of keyboard shortcuts that will work together to make sure you've captured the important parts of your code in the editor:
 
-1. Press Cmd/Ctrl + Shift + F10 to restart RStudio.
-2. Press Cmd/Ctrl + Shift + S to rerun the current script.
+组合使用以下快捷键可以确保重要的代码都写在了编辑器中。
 
-I use this pattern hundreds of times a week.
+1. Press Cmd/Ctrl + Shift + F10 to restart RStudio.按 Ctrl+Shift+F10 来重启 RStudio。
+2. Press Cmd/Ctrl + Shift + S to rerun the current script. 按 Ctrl+Shift+S 来重新运行当前脚本。
 
-## Where does your analysis live?
+I use this pattern hundreds of times a week. 我们每周会重复这种工作模式几百次。
+
+## Where does your analysis live? | 你的分析位于哪里
 
 R has a powerful notion of the __working directory__. This is where R looks for files that you ask it to load, and where it will put any files that you ask it to save. RStudio shows your current working directory at the top of the console:
+
+R 中有个名为工作目录的重要概念。R 在这个目录中查找你要加载的文件，也将你要保存的文件放在这个目录中。RStudio 在控制台上方显示当前工作目录。
 
 ```{r, echo = FALSE, out.width = "50%"}
 knitr::include_graphics("screenshots/rstudio-wd.png")
 ```
 
 And you can print this out in R code by running `getwd()`:
+
+可以通过运行 getwd() 命令在 R 代码中输出这个目录：
 
 ```{r eval = FALSE}
 getwd()
@@ -45,7 +64,11 @@ getwd()
 
 As a beginning R user, it's OK to let your home directory, documents directory, or any other weird directory on your computer be R's working directory. But you're six chapters into this book, and you're no longer a rank beginner. Very soon now you should evolve to organising your analytical projects into directories and, when working on a project, setting R's working directory to the associated directory.
 
+作为 R 语言新手，你可以使用自己的主目录、文档目录或计算机上其他稀奇古怪的目录作为 R 的工作目录。但既然已经学习了本书的 6 章内容，你也应该掌握一定的知识了。从现在开始，你应该逐渐学会使用目录来组织分析项目，每开始一个项目，就应该将R 的工作目录设置为与这个项目相关的目录。
+
 __I do not recommend it__, but you can also set the working directory from within R:
+
+还可以使用 R 的命令来设置工作目录，但我们不建议使用这种方法：
 
 ```{r eval = FALSE}
 setwd("/path/to/my/CoolProject")
@@ -53,9 +76,13 @@ setwd("/path/to/my/CoolProject")
 
 But you should never do this because there's a better way; a way that also puts you on the path to managing your R work like an expert.
 
-## Paths and directories
+不要使用这种操作，因为还有更好的方法，可以让你像专家一样管理与 R 相关的工作。
+
+## Paths and directories | 路径与目录
 
 Paths and directories are a little complicated because there are two basic styles of paths: Mac/Linux and Windows. There are three chief ways in which they differ:
+
+路径与目录稍微有一点复杂，因为路径有 2 种基本风格：Mac/Linux 和 Windows。它们主要有以下 3 种区别。
 
 1.  The most important difference is how you separate the components of the
     path. Mac and Linux uses slashes (e.g. `plots/diamonds.pdf`) and Windows
@@ -64,6 +91,8 @@ Paths and directories are a little complicated because there are two basic style
     backslashes mean something special to R, and to get a single backslash 
     in the path, you need to type two backslashes! That makes life frustrating, 
     so I recommend always using the Linux/Mac style with forward slashes.
+    
+    最重要的区别是如何分隔路径中的各个部分。Mac 和 Linux 使用的是斜杠（如 plots/ diamonds.pdf），Windows 使用的则是反斜杠（如 plots\diamonds.pdf）。R 支持任意一种类型（不管你现在使用的是哪种平台），但问题是，反斜杠在 R 中具有特殊意义，因此， 如果想要表示路径中的单个反斜杠，你需要输入 2 个反斜杠！这有点令人沮丧，因此我们建议你一直使用 Linux/Mac 风格的斜杠。
 
 1.  Absolute paths (i.e. paths that point to the same place regardless of 
     your working directory) look different. In Windows they start with a drive
@@ -71,17 +100,24 @@ Paths and directories are a little complicated because there are two basic style
     Mac/Linux they start with a slash "/" (e.g. `/users/hadley`). You should
     __never__ use absolute paths in your scripts, because they hinder sharing: 
     no one else will have exactly the same directory configuration as you.
+    
+    绝对路径（即不管你的工作目录是什么，都指向一个位置的路径）的形式不同。在Windows 系统中，绝对路径的开头是驱动器号（如 C:）或两个反斜杠（如 \\servername）；在 Mac/Linux 系统中，绝对路径的开头则是斜杠“/”（如 /user/hadley）。千万不要在脚本中使用绝对路径，因为不利于分享：没有任何人会和你具有完全相同的目录设置。
 
 1.  The last minor difference is the place that `~` points to. `~` is a
     convenient shortcut to your home directory. Windows doesn't really have 
     the notion of a home directory, so it instead points to your documents
     directory.
+    
+    最后一个小区别是 ~ 指向的位置。~ 是指向主目录的一个很方便的快捷方式。Windows 其实没有主目录的概念，因此 ~ 指向的是文档目录。
 
-## RStudio projects
+## RStudio projects | RStudio项目
 
 R experts keep all the files associated with a project together --- input data, R scripts, analytical results, figures. This is such a wise and common practice that RStudio has built-in support for this via __projects__.
 
+R 专家将与项目相关的所有文件放在一起，其中包括输入数据、R 脚本、分析结果以及图形。因为这是极其明智而又通用的做法，所以 RStudio 通过项目对这种做法提供了内置的支持。
+
 Let's make a project for you to use while you're working through the rest of this book. Click File > New Project, then:
+我们建立一个项目以供你在学习本书剩余内容时使用。点击 File → New Project，接下来，
 
 ```{r, echo = FALSE, out.width = "50%"}
 knitr::include_graphics("screenshots/rstudio-project-1.png")
@@ -91,7 +127,11 @@ knitr::include_graphics("screenshots/rstudio-project-3.png")
 
 Call your project `r4ds` and think carefully about which _subdirectory_ you put the project in. If you don't store it somewhere sensible, it will be hard to find it in the future!
 
+将项目命名为 r4ds，然后仔细思索一下将项目放在哪个子目录中。如果不将项目放在合适的地方，将来就很难找到它了！
+
 Once this process is complete, you'll get a new RStudio project just for this book. Check that the "home" directory of your project is the current working directory:
+
+一旦完成这个过程，你就为本书建立了一个新的 RStudio 项目。检查你的项目的“主”目录是否为当前工作目录：
 
 ```{r eval = FALSE}
 getwd()
@@ -100,7 +140,11 @@ getwd()
 
 Whenever you refer to a file with a relative path it will look for it here. 
 
+只要使用相对路径引用文件，R 就会在这个目录中寻找文件。
+
 Now enter the following commands in the script editor, and save the file, calling it "diamonds.R". Next, run the complete script which will save a PDF and CSV file into your project directory. Don't worry about the details, you'll learn them later in the book.
+
+接下来在脚本编辑器中输入以下命令，并保存这个文件，文件名为 diamonds.R。下一步是运行整个脚本，将一个 PDF 文件和一个 CSV 文件保存到项目目录中。不用担心代码中的细节，你会在本书后面学到。
 
 ```{r toy-line, eval = FALSE}
 library(tidyverse)
@@ -114,21 +158,29 @@ write_csv(diamonds, "diamonds.csv")
 
 Quit RStudio. Inspect the folder associated with your project --- notice the `.Rproj` file. Double-click that file to re-open the project. Notice you get back to where you left off: it's the same working directory and command history, and all the files you were working on are still open. Because you followed my instructions above, you will, however, have a completely fresh environment, guaranteeing that you're starting with a clean slate.
 
+退出 RStudio，查看项目目录，你会发现一个 .Rproj 文件。双击这个文件来重新打开项目。注意，你又回到了离开的地方：同样的工作目录，同样的命令历史，你使用过的所有文件都是打开的。因为按照上面的指示进行了操作，所以你会有一个全新的环境，以确保可以从头开始。
+
 In your favorite OS-specific way, search your computer for `diamonds.pdf` and you will find the PDF (no surprise) but _also the script that created it_ (`diamonds.R`). This is huge win! One day you will want to remake a figure or just understand where it came from. If you rigorously save figures to files __with R code__ and never with the mouse or the clipboard, you will be able to reproduce old work with ease!
 
-## Summary
+使用最喜欢的操作系统方式在计算机中搜索 diamonds.pdf，你不但会找到 PDF 文件（理应如此），还会找到创建这个文件的脚本（diamonds.r）。这是巨大的胜利！总有一天你会想重新生成图形，或者想知道图形的来源。如果从来不使用鼠标和剪贴板，而是严格使用 R 代码将图形保存到文件的话，你就可以轻松重现以前的工作！
+
+## Summary | 小结
 
 In summary, RStudio projects give you a solid workflow that will serve you well in the future:
 
-* Create an RStudio project for each data analysis project. 
+总的来说，RStudio 项目可以为你提供一个坚实可靠的工作流程，对你未来的工作大有裨益。
+
+* Create an RStudio project for each data analysis project. 为每个数据分析任务创建 RStudio 项目。
 
 * Keep data files there; we'll talk about loading them into R in 
-  [data import].
+  [data import]. 在项目中保存数据文件。我们会在数据导入中讨论将数据文件加载到 R 中的方法。
 
-* Keep scripts there; edit them, run them in bits or as a whole.
+* Keep scripts there; edit them, run them in bits or as a whole. 在项目中保存脚本。编辑脚本并按照命令运行脚本或运行整个脚本。
 
-* Save your outputs (plots and cleaned data) there.
+* Save your outputs (plots and cleaned data) there. 在项目中保存输出（图形和清洁的数据）。
 
-* Only ever use relative paths, not absolute paths.
+* Only ever use relative paths, not absolute paths. 只使用相对路径，不要使用绝对路径。
 
 Everything you need is in one place, and cleanly separated from all the other projects that you are working on.
+
+这样一来，需要的所有文件都放在一处了，而且与所有其他项目干净地隔离开了。

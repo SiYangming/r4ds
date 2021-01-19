@@ -1,12 +1,17 @@
-# Data transformation {#transform}
+# Data transformation | 数据转换 {#transform}
 
-## Introduction
+## Introduction | 简介
 
 Visualisation is an important tool for insight generation, but it is rare that you get the data in exactly the right form you need. Often you'll need to create some new variables or summaries, or maybe you just want to rename the variables or reorder the observations in order to make the data a little easier to work with. You'll learn how to do all that (and more!) in this chapter, which will teach you how to transform your data using the dplyr package and a new dataset on flights departing New York City in 2013.
 
-### Prerequisites
+可视化是生成见解的重要工具，但它需要数据格式完全符合我们的要求，这种情况是非常罕见的。一般来说，你需要创建一些新变量或者摘要统计量，还可能对变量进行重命名或者对观测值进行重新排序，以便数据更容易处理。你将在本章中学会如何进行这些甚至更多操作，本章将教会你如何使用 dplyr 包来转换数据，并介绍一个新的数据集：2013 年从纽约市出发的航班信息。
+
+### Prerequisites | 准备工作
 
 In this chapter we're going to focus on how to use the dplyr package, another core member of the tidyverse. We'll illustrate the key ideas using data from the nycflights13 package, and use ggplot2 to help us understand the data. 
+
+本章将重点讨论如何使用 tidyverse 中的另一个核心 R 包——dplyr 包。我们使用 
+nycflights13 包中的数据来说明 dplyr 包的核心理念，并使用 ggplot2 来帮助我们理解数据。
 
 ```{r setup, message = FALSE}
 library(nycflights13)
@@ -15,9 +20,13 @@ library(tidyverse)
 
 Take careful note of the conflicts message that's printed when you load the tidyverse. It tells you that dplyr overwrites some functions in base R. If you want to use the base version of these functions after loading dplyr, you'll need to use their full names: `stats::filter()` and `stats::lag()`.
 
+加载 tidyverse 时，仔细查看输出的冲突信息，它会告诉你 dplyr 覆盖了基础 R 包中的哪些函数。如果想要在加载 dplyr 后使用这些函数的基础版本，那么你应该使用它们的完整名称：stats::filter() 和 stats::lag()。
+
 ### nycflights13
 
 To explore the basic data manipulation verbs of dplyr, we'll use `nycflights13::flights`. This data frame contains all `r format(nrow(nycflights13::flights), big.mark = ",")` flights that departed from New York City in 2013. The data comes from the US [Bureau of Transportation Statistics](http://www.transtats.bts.gov/DatabaseInfo.asp?DB_ID=120&Link=0), and is documented in `?flights`.
+
+为了介绍 dplyr 中的基本数据操作，我们需要使用 nycflights13::flights。这个数据框包含了 2013 年从纽约市出发的所有 336 776 次航班的信息。该数据来自于美国交通统计局， 可以使用 ?flights 查看其说明文档：
 
 ```{r}
 flights
@@ -25,51 +34,70 @@ flights
 
 You might notice that this data frame prints a little differently from other data frames you might have used in the past: it only shows the first few rows and all the columns that fit on one screen. (To see the whole dataset, you can run `View(flights)` which will open the dataset in the RStudio viewer). It prints differently because it's a __tibble__. Tibbles are data frames, but slightly tweaked to work better in the tidyverse. For now, you don't need to worry about the differences; we'll come back to tibbles in more detail in [wrangle](#wrangle-intro).
  
+你或许会发现，这个数据框的输出和我们以前用过的其他数据框有一点差别：只显示了前几行和适合屏幕宽度的几列。（要想看到整个数据集，可以使用 View(flights) 在 RStudio 查看器中打开数据集。）输出有差别是因为 flights 是一个 tibble。tibble 也是一种数据框， 只是进行了一些小小的修改，使其更适合在 tidyverse 中使用。现在，你不必关心它们之间的区别，本书的第二部分会更加详细地介绍 tibble。
+
 You might also have noticed the row of three (or four) letter abbreviations under the column names. These describe the type of each variable:
 
-* `int` stands for integers.
+你或许还会发现，列名下面有一行 3 个或 4 个字母的缩写。它们描述了每个变量的类型。
 
-* `dbl` stands for doubles, or real numbers.
+* `int` stands for integers. int 表示整数型变量。
 
-* `chr` stands for character vectors, or strings.
+* `dbl` stands for doubles, or real numbers. dbl 表示双精度浮点数型变量，或称实数。
 
-* `dttm` stands for date-times (a date + a time).
+* `chr` stands for character vectors, or strings. chr 表示字符向量，或称字符串。
+
+* `dttm` stands for date-times (a date + a time). dttm 表示日期时间（日期 + 时间）型变量。
 
 There are three other common types of variables that aren't used in this dataset but you'll encounter later in the book:
 
-* `lgl` stands for logical, vectors that contain only `TRUE` or `FALSE`.
+还有另外 3 种常用的变量类型，虽然没有在这个数据集中出现，但很快就会在本书后面遇到。
+
+* `lgl` stands for logical, vectors that contain only `TRUE` or `FALSE`. lgl 表示逻辑型变量，是一个仅包括 TRUE 和 FALSE 的向量。
 
 * `fctr` stands for factors, which R uses to represent categorical variables
   with fixed possible values.
+fctr 表示因子，R 用其来表示具有固定数目的值的分类变量。  
 
-* `date` stands for dates.
+* `date` stands for dates. date 表示日期型变量。
 
-### dplyr basics
+### dplyr basics | dplyr基础
 
 In this chapter you are going to learn the five key dplyr functions that allow you to solve the vast majority of your data manipulation challenges:
 
-* Pick observations by their values (`filter()`).
-* Reorder the rows (`arrange()`).
-* Pick variables by their names (`select()`).
-* Create new variables with functions of existing variables (`mutate()`).
-* Collapse many values down to a single summary (`summarise()`).
+我们将在本章中学习 5 个 dplyr 核心函数，它们可以帮助你解决数据处理中的绝大多数难题。
+
+* Pick observations by their values (`filter()`).按值筛选观测（filter()）。
+* Reorder the rows (`arrange()`). 对行进行重新排序（arrange()）。
+* Pick variables by their names (`select()`).按名称选取变量（select()）。
+* Create new variables with functions of existing variables (`mutate()`).使用现有变量的函数创建新变量（mutate()）。
+* Collapse many values down to a single summary (`summarise()`). 将多个值总结为一个摘要统计量（summarize()）。
 
 These can all be used in conjunction with `group_by()` which changes the scope of each function from operating on the entire dataset to operating on it group-by-group. These six functions provide the verbs for a language of data manipulation.
 
-All verbs work similarly: 
+这些函数都可以和 group_by() 函数联合起来使用，group_by() 函数可以改变以上每个函数的作用范围，让其从在整个数据集上操作变为在每个分组上分别操作。这 6 个函数构成了数据处理语言的基本操作。
 
-1.  The first argument is a data frame.
+All verbs work similarly: 前面 5 个函数的工作方式都是相同的。
+
+
+1.  The first argument is a data frame. 第一个参数是一个数据框。
 
 1.  The subsequent arguments describe what to do with the data frame,
     using the variable names (without quotes).
     
-1.  The result is a new data frame.
+随后的参数使用变量名称（不带引号）描述了在数据框上进行的操作。
+    
+1.  The result is a new data frame. 输出结果是一个新数据框。
 
 Together these properties make it easy to chain together multiple simple steps to achieve a complex result. Let's dive in and see how these verbs work.
 
-## Filter rows with `filter()`
+利用以上这些属性可以很轻松地将多个简单步骤链接起来，从而得到非常复杂的结果。接下来我们将深入了解，看看如何使用这些操作。
+
+## Filter rows with `filter()` | 使用filter()筛选行
 
 `filter()` allows you to subset observations based on their values. The first argument is the name of the data frame. The second and subsequent arguments are the expressions that filter the data frame. For example, we can select all flights on January 1st with:
+
+filter() 函数可以基于观测的值筛选出一个观测子集。第一个参数是数据框名称，第二个参数以及随后的参数是用来筛选数据框的表达式。例如，我们可以使用以下代码筛选出 1
+月 1 日的所有航班：
 
 ```{r}
 filter(flights, month == 1, day == 1)
@@ -77,27 +105,37 @@ filter(flights, month == 1, day == 1)
 
 When you run that line of code, dplyr executes the filtering operation and returns a new data frame. dplyr functions never modify their inputs, so if you want to save the result, you'll need to use the assignment operator, `<-`:
 
+如果运行这行代码，dplyr 就会执行筛选操作，并返回一个新数据框。dplyr 函数从来不修改输入，因此，如果想要保存函数结果，那么你就需要使用赋值操作符 <-：
+
 ```{r}
 jan1 <- filter(flights, month == 1, day == 1)
 ```
 
 R either prints out the results, or saves them to a variable. If you want to do both, you can wrap the assignment in parentheses:
 
+R 要么输出结果，要么将结果保存在一个变量中。如果想同时完成这两种操作，那么你可以用括号将赋值语句括起来：
+
 ```{r}
 (dec25 <- filter(flights, month == 12, day == 25))
 ```
 
-### Comparisons
+### Comparisons | 比较运算符
 
 To use filtering effectively, you have to know how to select the observations that you want using the comparison operators. R provides the standard suite: `>`, `>=`, `<`, `<=`, `!=` (not equal), and `==` (equal). 
 
+为了有效地进行筛选，你必须知道如何使用比较运算符来选择观测。R 提供了一套标准的比较运算符：>、>=、<、<=、!=（不等于）和 ==（等于）。
+
 When you're starting out with R, the easiest mistake to make is to use `=` instead of `==` when testing for equality. When this happens you'll get an informative error:
+
+当开始使用 R 时，最容易犯的错误就是使用 = 而不是 == 来测试是否相等。当出现这种情况时，你会收到一条有启发性的错误消息：
 
 ```{r, error = TRUE}
 filter(flights, month = 1)
 ```
 
 There's another common problem you might encounter when using `==`: floating point numbers. These results might surprise you!
+
+在使用 == 进行比较时，你可能还会遇到另一个常见问题：浮点数。下面的结果可能会令你目瞪口呆：
 
 ```{r}
 sqrt(2) ^ 2 == 2
@@ -106,20 +144,25 @@ sqrt(2) ^ 2 == 2
 
 Computers use finite precision arithmetic (they obviously can't store an infinite number of digits!) so remember that every number you see is an approximation. Instead of relying on `==`, use `near()`:
 
+计算机使用的是有限精度运算（显然无法存储无限位的数），因此请记住，你看到的每个数都是一个近似值。比较浮点数是否相等时，不能使用 ==，而应该使用 near()：
+
 ```{r}
 near(sqrt(2) ^ 2,  2)
 near(1 / 49 * 49, 1)
 ```
 
-### Logical operators
+### Logical operators | 逻辑运算符
 
 Multiple arguments to `filter()` are combined with "and": every expression must be true in order for a row to be included in the output. For other types of combinations, you'll need to use Boolean operators yourself: `&` is "and", `|` is "or", and `!` is "not". Figure \@ref(fig:bool-ops) shows the complete set of Boolean operations.
+
+filter() 中的多个参数是由“与”组合起来的：每个表达式都必须为真才能让一行观测包含在输出中。如果要实现其他类型的组合，你需要使用布尔运算符：& 表示“与”、| 表示“或”、! 表示“非”。下图给出了布尔运算的完整集合。
 
 ```{r bool-ops, echo = FALSE, fig.cap = "Complete set of boolean operations. `x` is the left-hand circle, `y` is the right-hand circle, and the shaded region show which parts each operator selects."}
 knitr::include_graphics("diagrams/transform-logical.png")
 ```
 
 The following code finds all flights that departed in November or December:
+以下代码可以找出 11 月或 12 月出发的所有航班：
 
 ```{r, eval = FALSE}
 filter(flights, month == 11 | month == 12)
@@ -127,13 +170,20 @@ filter(flights, month == 11 | month == 12)
 
 The order of operations doesn't work like English. You can't write `filter(flights, month == (11 | 12))`, which you might literally translate into  "finds all flights that departed in November or December". Instead it finds all months that equal `11 | 12`, an expression that evaluates to `TRUE`. In a numeric context (like here), `TRUE` becomes one, so this finds all flights in January, not November or December. This is quite confusing!
 
+表达式中的运算顺序和语言中的是不一样的。你不能写成 filter(flights, month == 11 | 12) 这种形式。这种形式的文字翻译确实是“找出 11 月或 12 月出发的所有航班”，但在代码中则不是这个意思，代码中的含义是找出所有出发月份为 11 | 12 的航班。11 | 12 这个逻辑表达式的值为 TRUE，在数字语境中（如本例），TRUE 就是 1，所以这段代码找出的不是 11 月或 12 月出发的航班，而是 1 月出发的所有航班。真是够绕的！
+
 A useful short-hand for this problem is `x %in% y`. This will select every row where `x` is one of the values in `y`. We could use it to rewrite the code above:
+
+这种问题有一个有用的简写形式：x %in% y。这会选取出 x 是 y 中的一个值时的所有行。我们可以使用这种形式重写上面的代码：
 
 ```{r, eval = FALSE}
 nov_dec <- filter(flights, month %in% c(11, 12))
 ```
 
 Sometimes you can simplify complicated subsetting by remembering De Morgan's law: `!(x & y)` is the same as `!x | !y`, and `!(x | y)` is the same as `!x & !y`. For example, if you wanted to find flights that weren't delayed (on arrival or departure) by more than two hours, you could use either of the following two filters:
+
+有时你可以使用德摩根定律将复杂的筛选条件进行简化：!(x & y) 等价于 !x | !y、!(x |
+y) 等价于 !x & !y。例如，如果想要找出延误时间（到达或出发）不多于 2 小时的航班， 那么使用以下两种筛选方式均可：
 
 ```{r, eval = FALSE}
 filter(flights, !(arr_delay > 120 | dep_delay > 120))
@@ -142,11 +192,17 @@ filter(flights, arr_delay <= 120, dep_delay <= 120)
 
 As well as `&` and `|`, R also has `&&` and `||`. Don't use them here! You'll learn when you should use them in [conditional execution].
 
+除 & 和 | 之外，R 中还有 && 和 || 运算符。先不要使用这两个运算符！ 执行条件会说明何时使用它们。
+
 Whenever you start using complicated, multipart expressions in `filter()`, consider making them explicit variables instead. That makes it much easier to check your work. You'll learn how to create new variables shortly.
 
-### Missing values
+只要 filter() 函数中使用的是复杂的、包含多个部分的表达式，就需要考虑用一个明确的变量来代替它。这样检查代码会容易很多。我们很快就会介绍如何创建新变量。
+
+### Missing values | 缺失值
 
 One important feature of R that can make comparison tricky are missing values, or `NA`s ("not availables"). `NA` represents an unknown value so missing values are "contagious": almost any operation involving an unknown value will also be unknown.
+
+R 的一个重要特征使得比较运算更加复杂，这个特征就是缺失值，或称 NA（not available， 不可用）。NA 表示未知的值，因此缺失值是“可传染的”。如果运算中包含了未知值，那么运算结果一般来说也是个未知值：
 
 ```{r}
 NA > 5
@@ -156,12 +212,14 @@ NA / 2
 ```
 
 The most confusing result is this one:
+最令人费解的是以下这个结果：
 
 ```{r}
 NA == NA
 ```
 
 It's easiest to understand why this is true with a bit more context:
+要想理解为什么会这样，最容易的方式是加入一点背景知识：
 
 ```{r}
 # Let x be Mary's age. We don't know how old she is.
@@ -176,6 +234,7 @@ x == y
 ```
 
 If you want to determine if a value is missing, use `is.na()`:
+如果想要确定一个值是否为缺失值，可以使用 is.na() 函数：
 
 ```{r}
 is.na(x)
@@ -183,38 +242,59 @@ is.na(x)
 
 `filter()` only includes rows where the condition is `TRUE`; it excludes both `FALSE` and `NA` values. If you want to preserve missing values, ask for them explicitly:
 
+filter() 只能筛选出条件为 TRUE 的行；它会排除那些条件为 FALSE 和 NA 的行。如果想保留缺失值，可以明确指出：
+
 ```{r}
 df <- tibble(x = c(1, NA, 3))
 filter(df, x > 1)
 filter(df, is.na(x) | x > 1)
 ```
 
-### Exercises
+### Exercises | 练习
 
-1.  Find all flights that
+1.  Find all flights that 找出满足以下条件的所有航班。
 
-    1. Had an arrival delay of two or more hours
+    1. Had an arrival delay of two or more hours 
+    到达时间延误 2 小时或更多的航班。
     1. Flew to Houston (`IAH` or `HOU`)
+    飞往休斯顿（IAH 机场或 HOU 机场）的航班。
     1. Were operated by United, American, or Delta
+    由联合航空（United）、美利坚航空（American）或三角洲航空（Delta）运营的航班。
     1. Departed in summer (July, August, and September)
+    夏季（7 月、8 月和 9 月）出发的航班。
     1. Arrived more than two hours late, but didn't leave late
+    到达时间延误超过 2 小时，但出发时间没有延误的航班。
     1. Were delayed by at least an hour, but made up over 30 minutes in flight
+    延误至少 1 小时，但飞行过程弥补回 30 分钟的航班。
     1. Departed between midnight and 6am (inclusive)
+    出发时间在午夜和早上 6 点之间（包括 0 点和 6 点）的航班。
 
 1.  Another useful dplyr filtering helper is `between()`. What does it do?
     Can you use it to simplify the code needed to answer the previous 
     challenges?
+    
+dplyr 中对筛选有帮助的另一个函数是 between()。它的作用是什么？你能使用这个函数来简化解决前面问题的代码吗？
+
+```{r}
+filter(flights, between(month, 7, 9))
+```
 
 1.  How many flights have a missing `dep_time`? What other variables are 
     missing? What might these rows represent?
+    
+dep_time 有缺失值的航班有多少？其他变量的缺失值情况如何？这样的行表示什么情况？
 
 1.  Why is `NA ^ 0` not missing? Why is `NA | TRUE` not missing?
     Why is `FALSE & NA` not missing? Can you figure out the general
     rule?  (`NA * 0` is a tricky counterexample!)
+    
+为什么 NA ^ 0 的值不是 NA ？为什么 NA | TRUE 的值不是 NA ？为什么 FALSE & NA 的值不是 NA ？你能找出一般规律吗？（NA * 0 则是精妙的反例！）
 
-## Arrange rows with `arrange()`
+## Arrange rows with `arrange()` | 使用arrange()排列行
 
 `arrange()` works similarly to `filter()` except that instead of selecting rows, it changes their order. It takes a data frame and a set of column names (or more complicated expressions) to order by. If you provide more than one column name, each additional column will be used to break ties in the values of preceding columns:
+
+arrange() 函数的工作方式与 filter() 函数非常相似，但前者不是选择行，而是改变行的顺序。它接受一个数据框和一组作为排序依据的列名（或者更复杂的表达式）作为参数。如果列名不只一个，那么就使用后面的列在前面排序的基础上继续排序：
 
 ```{r}
 arrange(flights, year, month, day)
@@ -222,11 +302,14 @@ arrange(flights, year, month, day)
 
 Use `desc()` to re-order by a column in descending order:
 
+使用 desc() 可以按列进行降序排序：
+
 ```{r}
 arrange(flights, desc(dep_delay))
 ```
 
 Missing values are always sorted at the end:
+缺失值总是排在最后：
 
 ```{r}
 df <- tibble(x = c(5, 2, NA))
@@ -234,23 +317,31 @@ arrange(df, x)
 arrange(df, desc(x))
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  How could you use `arrange()` to sort all missing values to the start?
     (Hint: use `is.na()`).
+如何使用 arrange() 将缺失值排在最前面？（提示：使用 is.na()。）
     
 1.  Sort `flights` to find the most delayed flights. Find the flights that
     left earliest.
+对ﬂights 排序以找出延误时间最长的航班。找出出发时间最早的航班。
 
 1.  Sort `flights` to find the fastest (highest speed) flights.
+对 flights 排序以找出速度最快的航班。
 
 1.  Which flights travelled the farthest? Which travelled the shortest?
+哪个航班的飞行时间最长？哪个最短？
 
-## Select columns with `select()` {#select}
+## Select columns with `select()` | 使用select()选择列 {#select}
 
 It's not uncommon to get datasets with hundreds or even thousands of variables. In this case, the first challenge is often narrowing in on the variables you're actually interested in. `select()` allows you to rapidly zoom in on a useful subset using operations based on the names of the variables.
 
+如今，数据集有几百甚至几千个变量已经司空见惯。这种情况下，如何找出真正感兴趣的那些变量经常是我们面临的第一个挑战。通过基于变量名的操作，select() 函数可以让你快速生成一个有用的变量子集。
+
 `select()` is not terribly useful with the flights data because we only have 19 variables, but you can still get the general idea:
+
+select() 函数对于航班数据不是特别有用，因为其中只有 19 个变量，但你还是可以通过这个数据集了解一下 select() 函数的大致用法：
 
 ```{r}
 # Select columns by name
@@ -263,21 +354,26 @@ select(flights, -(year:day))
 
 There are a number of helper functions you can use within `select()`:
 
-* `starts_with("abc")`: matches names that begin with "abc".
+还可以在 select () 函数中使用一些辅助函数。
 
-* `ends_with("xyz")`: matches names that end with "xyz".
+* `starts_with("abc")`: matches names that begin with "abc". 匹配以“abc”开头的名称。
 
-* `contains("ijk")`: matches names that contain "ijk".
+* `ends_with("xyz")`: matches names that end with "xyz". 匹配以“xyz”结尾的名称。
+
+* `contains("ijk")`: matches names that contain "ijk". 匹配包含“ijk”的名称。
 
 * `matches("(.)\\1")`: selects variables that match a regular expression.
    This one matches any variables that contain repeated characters. You'll 
-   learn more about regular expressions in [strings].
+   learn more about regular expressions in [strings]. 选择匹配正则表达式的那些变量。这个正则表达式会匹配名称中有重复字符的变量。你将在字符串中学习到更多关于正则表达式的知识。
    
-*  `num_range("x", 1:3)`: matches `x1`, `x2` and `x3`.
+*  `num_range("x", 1:3)`: matches `x1`, `x2` and `x3`. 匹配 x1、x2 和 x3。
    
 See `?select` for more details.
+使用 ?select 命令可以获取更多信息。
 
 `select()` can be used to rename variables, but it's rarely useful because it drops all of the variables not explicitly mentioned. Instead, use `rename()`, which is a variant of `select()` that keeps all the variables that aren't explicitly mentioned:
+
+select() 可以重命名变量，但我们很少这样使用它，因为这样会丢掉所有未明确提及的变量。我们应该使用 select() 函数的变体 rename() 函数来重命名变量，以保留所有未明确提及的变量：
 
 ```{r}
 rename(flights, tail_num = tailnum)
@@ -285,20 +381,28 @@ rename(flights, tail_num = tailnum)
 
 Another option is to use `select()` in conjunction with the `everything()` helper. This is useful if you have a handful of variables you'd like to move to the start of the data frame.
 
+另一种用法是将 select() 函数和 everything() 辅助函数结合起来使用。当想要将几个变量移到数据框开头时，这种用法非常奏效：
+
 ```{r}
 select(flights, time_hour, air_time, everything())
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  Brainstorm as many ways as possible to select `dep_time`, `dep_delay`,
     `arr_time`, and `arr_delay` from `flights`.
     
+从 flights 数据集中选择 dep_time、dep_delay、arr_time 和 arr_delay，通过头脑风暴找出尽可能多的方法。
+    
 1.  What happens if you include the name of a variable multiple times in
     a `select()` call?
+    
+如果在 select() 函数中多次计入一个变量名，那么会发生什么情况？
   
 1.  What does the `any_of()` function do? Why might it be helpful in conjunction
     with this vector?
+
+one_of() 函数的作用是什么？为什么它结合以下向量使用时非常有用？
     
     ```{r}
     vars <- c("year", "month", "day", "dep_delay", "arr_delay")
@@ -306,16 +410,22 @@ select(flights, time_hour, air_time, everything())
     
 1.  Does the result of running the following code surprise you?  How do the
     select helpers deal with case by default? How can you change that default?
+    
+以下代码的运行结果是否出乎意料？选择辅助函数处理大小写的默认方式是什么？如何改变默认方式？
 
     ```{r, eval = FALSE}
     select(flights, contains("TIME"))
     ```
 
-## Add new variables with `mutate()`
+## Add new variables with `mutate()` | 使用mutate()添加新变量
 
-Besides selecting sets of existing columns, it's often useful to add new columns that are functions of existing columns. That's the job of `mutate()`. 
+Besides selecting sets of existing columns, it's often useful to add new columns that are functions of existing columns. That's the job of `mutate()`.
+
+除了选择现有的列，我们还经常需要添加新列，新列是现有列的函数。这就是 mutate() 函数的作用。
 
 `mutate()` always adds new columns at the end of your dataset so we'll start by creating a narrower dataset so we can see the new variables. Remember that when you're in RStudio, the easiest way to see all the columns is `View()`.
+
+mutate() 总是将新列添加在数据集的最后，因此我们需要先创建一个更狭窄的数据集，以便能够看到新变量。记住，当使用 RStudio 时，查看所有列的最简单的方法就是使用 View() 函数：s
 
 ```{r}
 flights_sml <- select(flights, 
@@ -332,6 +442,8 @@ mutate(flights_sml,
 
 Note that you can refer to columns that you've just created:
 
+一旦创建，新列就可以立即使用：
+
 ```{r}
 mutate(flights_sml,
   gain = dep_delay - arr_delay,
@@ -342,6 +454,8 @@ mutate(flights_sml,
 
 If you only want to keep the new variables, use `transmute()`:
 
+如果只想保留新变量，可以使用 transmute() 函数：
+
 ```{r}
 transmute(flights,
   gain = dep_delay - arr_delay,
@@ -350,25 +464,33 @@ transmute(flights,
 )
 ```
 
-### Useful creation functions {#mutate-funs}
+### Useful creation functions | 常用创建函数 {#mutate-funs}
 
 There are many functions for creating new variables that you can use with `mutate()`. The key property is that the function must be vectorised: it must take a vector of values as input, return a vector with the same number of values as output. There's no way to list every possible function that you might use, but here's a selection of functions that are frequently useful:
 
-*   Arithmetic operators: `+`, `-`, `*`, `/`, `^`. These are all vectorised,
+创建新变量的多种函数可供你同 mutate() 一同使用。最重要的一点是，这种函数必须是向量化的：它必须接受一个向量作为输入，并返回一个向量作为输出，而且输入向量与输出向量具有同样数目的分量。我们无法列出所有可能用到的创建函数，但可以介绍一下那些比较常用的。
+
+*   Arithmetic operators 算术运算符: `+`, `-`, `*`, `/`, `^`. These are all vectorised,
     using the so called "recycling rules". If one parameter is shorter than 
     the other, it will be automatically extended to be the same length. This 
     is most useful when one of the arguments is a single number: `air_time / 60`,
     `hours * 60 + minute`, etc.
+
+它们都是向量化的，使用所谓的“循环法则”。如果一个参数比另一个参数短，那么前者会自动扩展到同样的长度。当某个参数是单个数值时，这种方式是最有效的：air_ time / 60、hours * 60 + minute 等。
     
     Arithmetic operators are also useful in conjunction with the aggregate
     functions you'll learn about later. For example, `x / sum(x)` calculates 
     the proportion of a total, and `y - mean(y)` computes the difference from 
     the mean.
     
-*   Modular arithmetic: `%/%` (integer division) and `%%` (remainder), where
+    算术运算符的另一用途是与我们后面将很快学到的聚集函数结合起来使用。例如，x / sum(x) 可以计算出各个分量在总数中的比例，y – mean(y) 可以计算出分量与均值之间的差值。
+    
+*   Modular arithmetic 模运算符: `%/%` (integer division) and `%%` (remainder), where
     `x == y * (x %/% y) + (x %% y)`. Modular arithmetic is a handy tool because 
     it allows you to break integers up into pieces. For example, in the 
     flights dataset, you can compute `hour` and `minute` from `dep_time` with:
+
+%/%（整数除法）和 %%（求余）满足 x == y * (x %/% y) + (x %% y)。模运算非常好用，因为它可以拆分整数。例如，在航班数据集中，你可以根据 dep_time 计算出 hour 和 minute：
     
     ```{r}
     transmute(flights,
@@ -378,19 +500,25 @@ There are many functions for creating new variables that you can use with `mutat
     )
     ```
   
-*   Logs: `log()`, `log2()`, `log10()`. Logarithms are an incredibly useful
+*   Logs 对数函数: `log()`, `log2()`, `log10()`. Logarithms are an incredibly useful
     transformation for dealing with data that ranges across multiple orders of
     magnitude. They also convert multiplicative relationships to additive, a
     feature we'll come back to in modelling.
     
+在处理取值范围横跨多个数量级的数据时，对数是特别有用的一种转换方式。它还可以将乘法转换成加法，我们将在本书的第四部分中介绍这个功能。
+    
     All else being equal, I recommend using `log2()` because it's easy to
     interpret: a difference of 1 on the log scale corresponds to doubling on
     the original scale and a difference of -1 corresponds to halving.
+    
+    其他条件相同的情况下，我推荐使用 log2() 函数，因为很容易对其进行解释：对数标度的数值增加 1 个单位，意味着初始数值加倍；减少 1 个单位，则意味着初始数值减半。
 
-*   Offsets: `lead()` and `lag()` allow you to refer to leading or lagging 
+*   Offsets偏移函数: `lead()` and `lag()` allow you to refer to leading or lagging 
     values. This allows you to compute running differences (e.g. `x - lag(x)`) 
     or find when values change (`x != lag(x)`). They are most useful in 
     conjunction with `group_by()`, which you'll learn about shortly.
+    
+    lead() 和 lag() 函数可以返回一个序列的领先值和滞后值。它们可以计算出序列的移动差值（如 x – lag(x)）或发现序列何时发生了变化（x != lag(x)）。它们与 group_by()组合使用时特别有用，你很快就会学到 group_by() 这个函数：
     
     ```{r}
     (x <- 1:10)
@@ -398,11 +526,13 @@ There are many functions for creating new variables that you can use with `mutat
     lead(x)
     ```
   
-*   Cumulative and rolling aggregates: R provides functions for running sums,
+*   Cumulative and rolling aggregates 累加和滚动聚合: R provides functions for running sums,
     products, mins and maxes: `cumsum()`, `cumprod()`, `cummin()`, `cummax()`; 
     and dplyr provides `cummean()` for cumulative means. If you need rolling
     aggregates (i.e. a sum computed over a rolling window), try the RcppRoll
     package.
+    
+    R 提供了计算累加和、累加积、累加最小值和累加最大值的函数：cumsum()、cumprod()、commin() 和 cummax()；dplyr 还提供了 cummean() 函数以计算累加均值。如果想要计算滚动聚合（即滚动窗口求和），那么可以尝试使用 RcppRoll 包：
     
     ```{r}
     x
@@ -410,15 +540,21 @@ There are many functions for creating new variables that you can use with `mutat
     cummean(x)
     ```
 
-*   Logical comparisons, `<`, `<=`, `>`, `>=`, `!=`, and `==`, which you learned about
+*   Logical comparisons 逻辑比较, `<`, `<=`, `>`, `>=`, `!=`, and `==`, which you learned about
     earlier. If you're doing a complex sequence of logical operations it's 
     often a good idea to store the interim values in new variables so you can
     check that each step is working as expected.
+    
+    如果需要进行一系列复杂的逻辑运算，那么最好将中间结果保存在新变量中，这样就可以检查是否每一步都符合预期。
 
-*   Ranking: there are a number of ranking functions, but you should 
+*   Ranking 排秩: there are a number of ranking functions, but you should 
     start with `min_rank()`. It does the most usual type of ranking 
     (e.g. 1st, 2nd, 2nd, 4th). The default gives smallest values the small
     ranks; use `desc(x)` to give the largest values the smallest ranks. 
+    
+    排秩函数有很多，但你应该从 min_rank() 函数开始，它可以完成最常用的排秩任务
+（如第一、第二、第三、第四）。默认的排秩方式是，最小的值获得最前面的名次，使用
+desc(x) 可以让最大的值获得最前面的名次：
     
     ```{r}
     y <- c(1, 2, 2, NA, 3, 4)
@@ -430,6 +566,8 @@ There are many functions for creating new variables that you can use with `mutat
     `row_number()`, `dense_rank()`, `percent_rank()`, `cume_dist()`,
     `ntile()`.  See their help pages for more details.
     
+    如果 min_rank() 无法满足需要，那么可以看一下其变体 row_number()、dense_rank()、percent_rank()、cume_dist() 和 ntile()。可以查看它们的帮助页面以获得更多信息：
+    
     ```{r}
     row_number(y)
     dense_rank(y)
@@ -437,7 +575,7 @@ There are many functions for creating new variables that you can use with `mutat
     cume_dist(y)
     ```
 
-### Exercises
+### Exercises | 练习
 
 ```{r, eval = FALSE, echo = FALSE}
 flights <- flights %>% mutate(
@@ -457,22 +595,34 @@ ggplot(flights, aes(air_time - airtime2)) + geom_histogram()
     Convert them to a more convenient representation of number of minutes
     since midnight.
     
+虽然现在的 dep_time 和 sched_dep_time 变量方便阅读，但不适合计算，因为它们实际上并不是连续型数值。将它们转换成一种更方便的表示形式，即从午夜开始的分钟数。
+    
 1.  Compare `air_time` with `arr_time - dep_time`. What do you expect to see?
     What do you see? What do you need to do to fix it?
     
+比较 air_time 和 arr_time – dep_time。你期望看到什么？实际又看到了什么？如何解决这个问题？
+    
 1.  Compare `dep_time`, `sched_dep_time`, and `dep_delay`. How would you
     expect those three numbers to be related?
+    
+比较 dep_time、sched_dep_time 和 dep_delay。你期望这 3 个数值之间具有何种关系？
 
 1.  Find the 10 most delayed flights using a ranking function. How do you want 
     to handle ties? Carefully read the documentation for `min_rank()`.
 
+使用排秩函数找出 10 个延误时间最长的航班。如何处理名次相同的情况？仔细阅读min_rank() 的帮助文件。
+
 1.  What does `1:3 + 1:10` return? Why?
+1:3 + 1:10 会返回什么？为什么？
 
 1.  What trigonometric functions does R provide?
+R 提供了哪些三角函数？
 
-## Grouped summaries with `summarise()`
+## Grouped summaries with `summarise()` | 使用summarize()进行分组摘要
 
 The last key verb is `summarise()`. It collapses a data frame to a single row:
+
+最后一个核心函数是 summarize()，它可以将数据框折叠成一行：
 
 ```{r}
 summarise(flights, delay = mean(dep_delay, na.rm = TRUE))
@@ -480,7 +630,16 @@ summarise(flights, delay = mean(dep_delay, na.rm = TRUE))
 
 (We'll come back to what that `na.rm = TRUE` means very shortly.)
 
-`summarise()` is not terribly useful unless we pair it with `group_by()`. This changes the unit of analysis from the complete dataset to individual groups. Then, when you use the dplyr verbs on a grouped data frame they'll be automatically applied "by group". For example, if we applied exactly the same code to a data frame grouped by date, we get the average delay per date:
+（我们很快就会解释 na.rm = TRUE 的含义。）
+
+
+`summarise()` is not terribly useful unless we pair it with `group_by()`. This changes the unit of analysis from the complete dataset to individual groups.
+
+如果不与 group_by() 一起使用，那么 summarize() 也就没什么大用。group_by() 可以将分析单位从整个数据集更改为单个分组。
+
+Then, when you use the dplyr verbs on a grouped data frame they'll be automatically applied "by group". For example, if we applied exactly the same code to a data frame grouped by date, we get the average delay per date:
+
+接下来，在分组后的数据框上使用 dplyr 函数时， 它们会自动地应用到每个分组。例如，如果对按日期分组的一个数据框应用与上面完全相同的代码，那么我们就可以得到每日平均延误时间：
 
 ```{r}
 by_day <- group_by(flights, year, month, day)
@@ -489,9 +648,13 @@ summarise(by_day, delay = mean(dep_delay, na.rm = TRUE))
 
 Together `group_by()` and `summarise()` provide one of the tools that you'll use most commonly when working with dplyr: grouped summaries. But before we go any further with this, we need to introduce a powerful new idea: the pipe.
 
-### Combining multiple operations with the pipe
+group_by() 和 summarize() 的组合构成了使用 dplyr 包时最常用的操作之一：分组摘要。在对其进行更深入的讨论之前，我们需要先介绍一个功能强大的新概念：管道。
+
+### Combining multiple operations with the pipe | 使用管道组合多种操作
 
 Imagine that we want to explore the relationship between the distance and average delay for each location. Using what you know about dplyr, you might write code like this:
+
+假设我们想要研究每个目的地的距离和平均延误时间之间的关系。使用已经了解的 dplyr 包功能，你可能会写出以下代码：
 
 ```{r, fig.width = 6}
 by_dest <- group_by(flights, dest)
@@ -505,23 +668,31 @@ delay <- filter(delay, count > 20, dest != "HNL")
 # It looks like delays increase with distance up to ~750 miles 
 # and then decrease. Maybe as flights get longer there's more 
 # ability to make up delays in the air?
+# 750英里内，平均延误时间会随着距离的增加而增加，接着会随着距离的增加而减少。随着飞行距离的增加，延误时间有可能会在飞行中弥补回来吗？
 ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
   geom_point(aes(size = count), alpha = 1/3) +
   geom_smooth(se = FALSE)
 ```
 
-There are three steps to prepare this data:
+There are three steps to prepare this data: 完成数据准备需要 3 步。
 
-1.  Group flights by destination.
+1.  Group flights by destination. 按照目的地对航班进行分组。
 
-1.  Summarise to compute distance, average delay, and number of flights.
+1.  Summarise to compute distance, average delay, and number of flights. 进行摘要统计，计算距离、平均延误时间和航班数量。
 
 1.  Filter to remove noisy points and Honolulu airport, which is almost
     twice as far away as the next closest airport.
+    
+    通过筛选除去噪声点和火奴鲁鲁机场，因为到达该机场的距离几乎是到离它最近机场的距离的 2 倍。
 
 This code is a little frustrating to write because we have to give each intermediate data frame a name, even though we don't care about it. Naming things is hard, so this slows down our analysis. 
 
+这段代码写起来有点令人泄气，因为不得不对每个中间数据框命名，尽管我们根本不关心这一点。命名是很难的，这样做会影响我们的分析速度。
+
 There's another way to tackle the same problem with the pipe, `%>%`:
+
+解决这个问题的另一种方法是使用管道，%>%：
+
 
 ```{r}
 delays <- flights %>% 
@@ -536,13 +707,21 @@ delays <- flights %>%
 
 This focuses on the transformations, not what's being transformed, which makes the code easier to read. You can read it as a series of imperative statements: group, then summarise, then filter. As suggested by this reading, a good way to pronounce `%>%` when reading code is "then".
 
+这种方法的重点在于转换的过程，而不是转换的对象，这使得代码具有更好的可读性。你可以将其读作一串命令式语句：分组，然后摘要统计，然后进行筛选。在阅读代码时，%>% 最好读作“然后”。
+
 Behind the scenes, `x %>% f(y)` turns into `f(x, y)`, and `x %>% f(y) %>% g(z)` turns into `g(f(x, y), z)` and so on. You can use the pipe to rewrite multiple operations in a way that you can read left-to-right, top-to-bottom. We'll use piping frequently from now on because it considerably improves the readability of code, and we'll come back to it in more detail in [pipes].
+
+使用这种方法时，x %>% f(y) 会转换为 f(x, y)，x %>% f(y) %>% g(z) 会转换为 g(f(x, y), z)，以此类推。你可以使用管道重写多种操作，将其变为能够从左到右或从上到下阅读。从现在开始，我们会频繁使用管道方式，因为它可以显著提高代码的可读性，我们将在管道中对其进行更详细的介绍。
 
 Working with the pipe is one of the key criteria for belonging to the tidyverse. The only exception is ggplot2: it was written before the pipe was discovered. Unfortunately, the next iteration of ggplot2, ggvis, which does use the pipe, isn't quite ready for prime time yet. 
 
-### Missing values
+支持管道操作是 tidyverse 中的 R 包的核心原则之一。唯一的例外就是 ggplot2：它是在发现管道方式前开发的。ggplot2 的下一个版本 ggvis 支持管道操作，遗憾的是其还没有达到成熟完备的程度。
+
+### Missing values | 缺失值
 
 You may have wondered about the `na.rm` argument we used above. What happens if we don't set it?
+
+我们在前面使用了参数 na.rm，你应该非常想要知道其含义。如果没有设置这个参数，会发生什么情况呢？
 
 ```{r}
 flights %>% 
@@ -552,6 +731,8 @@ flights %>%
 
 We get a lot of missing values! That's because aggregation functions obey the usual rule of missing values: if there's any missing value in the input, the output will be a missing value. Fortunately, all aggregation functions have an `na.rm` argument which removes the missing values prior to computation:
 
+我们会得到很多缺失值！这是因为聚合函数遵循缺失值的一般规则：如果输入中有缺失值，那么输出也会是缺失值。好在所有聚合函数都有一个 na.rm 参数，它可以在计算前除去缺失值：
+
 ```{r}
 flights %>% 
   group_by(year, month, day) %>% 
@@ -559,6 +740,8 @@ flights %>%
 ```
 
 In this case, where missing values represent cancelled flights, we could also tackle the problem by first removing the cancelled flights. We'll save this dataset so we can reuse it in the next few examples.
+
+在这个示例中，缺失值表示取消的航班，我们也可以通过先去除取消的航班来解决缺失值问题。保存这个数据集，以便我们可以在接下来的几个示例中继续使用：
 
 ```{r}
 not_cancelled <- flights %>% 
@@ -569,9 +752,11 @@ not_cancelled %>%
   summarise(mean = mean(dep_delay))
 ```
 
-### Counts
+### Counts | 计数
 
 Whenever you do any aggregation, it's always a good idea to include either a count (`n()`), or a count of non-missing values (`sum(!is.na(x))`). That way you can check that you're not drawing conclusions based on very small amounts of data. For example, let's look at the planes (identified by their tail number) that have the highest average delays:
+
+聚合操作中包括一个计数（n()）或非缺失值的计数（sum(!is_na())）是个好主意。这样你就可以检查一下，以确保自己没有基于非常少量的数据作出结论。例如，我们查看一下具有最长平均延误时间的飞机（通过机尾编号进行识别）：
 
 ```{r}
 delays <- not_cancelled %>% 
@@ -586,7 +771,11 @@ ggplot(data = delays, mapping = aes(x = delay)) +
 
 Wow, there are some planes that have an _average_ delay of 5 hours (300 minutes)!
 
+哇！有些飞机的平均延误时间长达 5 小时（300 分钟）！
+
 The story is actually a little more nuanced. We can get more insight if we draw a scatterplot of number of flights vs. average delay:
+
+这个情况确实有些微妙。我们可以画一张航班数量和平均延误时间的散点图，以便获得更深刻的理解：
 
 ```{r}
 delays <- not_cancelled %>% 
@@ -602,7 +791,11 @@ ggplot(data = delays, mapping = aes(x = n, y = delay)) +
 
 Not surprisingly, there is much greater variation in the average delay when there are few flights. The shape of this plot is very characteristic: whenever you plot a mean (or other summary) vs. group size, you'll see that the variation decreases as the sample size increases.
 
+结果并不出乎意料，当航班数量非常少时，平均延误时间的变动特别大。这张图的形状非常能够说明问题：当绘制均值（或其他摘要统计量）和分组规模的关系时，你总能看到随着样本量的增加，变动在不断减小。
+
 When looking at this sort of plot, it's often useful to filter out the groups with the smallest numbers of observations, so you can see more of the pattern and less of the extreme variation in the smallest groups. This is what the following code does, as well as showing you a handy pattern for integrating ggplot2 into dplyr flows. It's a bit painful that you have to switch from `%>%` to `+`, but once you get the hang of it, it's quite convenient.
+
+查看此类图形时，通常应该筛选掉那些观测数量非常少的分组，这样你就可以避免受到特别小的分组中的极端变动的影响，进而更好地发现数据模式。这就是以下代码要做的工作，同时还展示了将 ggplot2 集成到 dplyr 工作流中的一种有效方式。从 %>% 过渡到 + 会令人感到不适应，但掌握其中的要领后，这种写法是非常方便的：
 
 ```{r}
 delays %>% 
@@ -615,21 +808,31 @@ delays %>%
 
 RStudio tip: a useful keyboard shortcut is Cmd/Ctrl + Shift + P. This resends the previously sent chunk from the editor to the console. This is very convenient when you're (e.g.) exploring the value of `n` in the example above. You send the whole block once with Cmd/Ctrl + Enter, then you modify the value of `n` and press Cmd/Ctrl + Shift + P to resend the complete block.
 
+RStudio 技巧：Ctrl+Shift+P 是非常有用的组合键，可以将上一次从编辑器发送到控制台的代码段重新发送一次。例如，当在上个示例中试验 n 的值时， 使用这个组合键就特别方便。你可以使用 Ctrl+Enter 将整段代码发送到控制台，然后修改 n 的值，再按 Ctrl+Shift+P 就可以重新发送整段代码。
+
 --------------------------------------------------------------------------------
 
 There's another common variation of this type of pattern. Let's look at how the average performance of batters in baseball is related to the number of times they're at bat. Here I use data from the __Lahman__ package to compute the batting average (number of hits / number of attempts) of every major league baseball player.  
 
+这种数据模式还有另外一种常见的变体。我们看一下棒球击球手的平均表现与击球次数之间的关系。我们使用Lahman 包中的数据来计算大联盟的每个棒球队员的打击率（安打数/ 打数）。
+
 When I plot the skill of the batter (measured by the batting average, `ba`) against the number of opportunities to hit the ball (measured by at bat, `ab`), you see two patterns:
+
+当我绘制出击球手的能力（用打击率 ba 衡量）与击球机会数量（用打数 ab 衡量）之间的关系时，你可以看到两种模式。
 
 1.  As above, the variation in our aggregate decreases as we get more 
     data points.
+    同上，数据点越多，聚合值的变动就越小。
     
 2.  There's a positive correlation between skill (`ba`) and opportunities to 
     hit the ball (`ab`). This is because teams control who gets to play, 
     and obviously they'll pick their best players.
+    
+    能力（ba）和击球机会数量（ab）之间存在正相关。这是因为球队会控制击球手的出场， 很显然，球队会优先选择最好的队员。
 
 ```{r}
 # Convert to a tibble so it prints nicely
+# 转换成tibble，以便输出更美观
 batting <- as_tibble(Lahman::Batting)
 
 batters <- batting %>% 
@@ -648,6 +851,8 @@ batters %>%
 
 This also has important implications for ranking. If you naively sort on `desc(ba)`, the people with the best batting averages are clearly lucky, not skilled:
 
+这对球员排名也有重要影响。如果只是使用 desc(ba) 进行排序，明显受益的将是具有最好打击率的球员，而不是能力最高的球员：
+
 ```{r}
 batters %>% 
   arrange(desc(ba))
@@ -655,47 +860,64 @@ batters %>%
 
 You can find a good explanation of this problem at <http://varianceexplained.org/r/empirical_bayes_baseball/> and <http://www.evanmiller.org/how-not-to-sort-by-average-rating.html>.
 
-### Useful summary functions {#summarise-funs}
+你可以在 http://varianceexplained.org/r/empirical_bayes_baseball/ 和 http://www.evanmiller. org/how-not-to-sort-by-average-rating.html 中找到有关这个问题的精彩解释。
+
+### Useful summary functions | 常用的摘要函数 {#summarise-funs}
 
 Just using means, counts, and sum can get you a long way, but R provides many other useful summary functions:
 
-*   Measures of location: we've used `mean(x)`, but `median(x)` is also
+只使用均值、计数和求和是远远不够的，R 中还提供了很多其他的常用的摘要函数。
+
+*   Measures of location 位置度量: we've used `mean(x)`, but `median(x)` is also
     useful. The mean is the sum divided by the length; the median is a value 
     where 50% of `x` is above it, and 50% is below it.
+    
+    我们已经使用过 mean(x)，但 median(x) 也非常有用。均值是总数除以个数；中位数则是这样一个值：50% 的 x 大于它，同时 50% 的 x 小于它。
     
     It's sometimes useful to combine aggregation with logical subsetting. 
     We haven't talked about this sort of subsetting yet, but you'll learn more
     about it in [subsetting].
     
+    有时候需要将聚合函数和逻辑筛选组合起来使用。我们还没有讨论过这种取数据子集的方法，子集节将对此进行深入介绍。
+    
     ```{r}
     not_cancelled %>% 
       group_by(year, month, day) %>% 
       summarise(
+        # 平均延误时间：
         avg_delay1 = mean(arr_delay),
+        # 平均正延误时间：
         avg_delay2 = mean(arr_delay[arr_delay > 0]) # the average positive delay
       )
     ```
 
-*   Measures of spread: `sd(x)`, `IQR(x)`, `mad(x)`. The root mean squared deviation,
+*   Measures of spread 分散程度度量: `sd(x)`, `IQR(x)`, `mad(x)`. The root mean squared deviation,
     or standard deviation `sd(x)`, is the standard measure of spread.
     The interquartile range `IQR(x)` and median absolute deviation `mad(x)`
     are robust equivalents that may be more useful if you have outliers.
     
+    均方误差（又称标准误差，standard deviation，sd）是分散程度的标准度量方式。四分位距 IQR() 和绝对中位差 mad(x) 基本等价，更适合有离群点的情况：
+    
     ```{r}
     # Why is distance to some destinations more variable than to others?
+    # 为什么到某些目的地的距离比到其他目的地更多变？
     not_cancelled %>% 
       group_by(dest) %>% 
       summarise(distance_sd = sd(distance)) %>% 
       arrange(desc(distance_sd))
     ```
   
-*   Measures of rank: `min(x)`, `quantile(x, 0.25)`, `max(x)`. Quantiles
+*   Measures of rank 秩的度量: `min(x)`, `quantile(x, 0.25)`, `max(x)`. Quantiles
     are a generalisation of the median. For example, `quantile(x, 0.25)`
     will find a value of `x` that is greater than 25% of the values,
     and less than the remaining 75%.
+    
+    分位数是中位数的扩展。例如，quantile(x, 0.25) 会找出 x 中按从小到大顺序大于前
+25% 而小于后 75% 的值：
 
     ```{r}
     # When do the first and last flights leave each day?
+    # 每天最早和最晚的航班何时出发？
     not_cancelled %>% 
       group_by(year, month, day) %>% 
       summarise(
@@ -704,11 +926,14 @@ Just using means, counts, and sum can get you a long way, but R provides many ot
       )
     ```
   
-*   Measures of position: `first(x)`, `nth(x, 2)`, `last(x)`. These work 
+*   Measures of position 定位度量: `first(x)`, `nth(x, 2)`, `last(x)`. These work 
     similarly to `x[1]`, `x[2]`, and `x[length(x)]` but let you set a default 
     value if that position does not exist (i.e. you're trying to get the 3rd
     element from a group that only has two elements). For example, we can
     find the first and last departure for each day:
+    
+    这几个函数的作用与 x[1]、x[2] 和 x[length(x)] 相同，只是当定位不存在时（比如尝试从只有两个元素的分组中得到第三个元素），前者允许你设置一个默认值。
+    例如，我们可以找出每天最早和最晚出发的航班：
     
     ```{r}
     not_cancelled %>% 
@@ -722,6 +947,8 @@ Just using means, counts, and sum can get you a long way, but R provides many ot
     These functions are complementary to filtering on ranks. Filtering gives
     you all variables, with each observation in a separate row:
     
+    这些函数对筛选操作进行了排秩方面的补充。筛选会返回所有变量，每个观测在单独的一行中：
+    
     ```{r}
     not_cancelled %>% 
       group_by(year, month, day) %>% 
@@ -729,13 +956,16 @@ Just using means, counts, and sum can get you a long way, but R provides many ot
       filter(r %in% range(r))
     ```
 
-*   Counts: You've seen `n()`, which takes no arguments, and returns the 
+*   Counts 计数: You've seen `n()`, which takes no arguments, and returns the 
     size of the current group. To count the number of non-missing values, use
     `sum(!is.na(x))`. To count the number of distinct (unique) values, use
     `n_distinct(x)`.
     
+    你已经见过 n()，它不需要任何参数，并返回当前分组的大小。如果想要计算出非缺失值的数量，可以使用 sum(!is.na(x))。要想计算出唯一值的数量，可以使用 n_ distinct(x)：
+    
     ```{r}
     # Which destinations have the most carriers?
+    # 哪个目的地具有最多的航空公司？
     not_cancelled %>% 
       group_by(dest) %>% 
       summarise(carriers = n_distinct(carrier)) %>% 
@@ -745,6 +975,8 @@ Just using means, counts, and sum can get you a long way, but R provides many ot
     Counts are so useful that dplyr provides a simple helper if all you want is 
     a count:
     
+    因为计数太常用了，所以 dplyr 提供了一个简单的辅助函数，用于只需要计数的情况：
+    
     ```{r}
     not_cancelled %>% 
       count(dest)
@@ -753,32 +985,41 @@ Just using means, counts, and sum can get you a long way, but R provides many ot
     You can optionally provide a weight variable. For example, you could use 
     this to "count" (sum) the total number of miles a plane flew:
     
+    你还可以选择提供一个加权变量。例如，你可以使用以下代码算出每架飞机飞行的总里程数（实际上就是求和）：
+    
     ```{r}
     not_cancelled %>% 
       count(tailnum, wt = distance)
     ```
   
-*   Counts and proportions of logical values: `sum(x > 10)`, `mean(y == 0)`.
+*   Counts and proportions of logical values 逻辑值的计数和比例: `sum(x > 10)`, `mean(y == 0)`.
     When used with numeric functions, `TRUE` is converted to 1 and `FALSE` to 0. 
     This makes `sum()` and `mean()` very useful: `sum(x)` gives the number of 
     `TRUE`s in `x`, and `mean(x)` gives the proportion.
     
+    当与数值型函数一同使用时，TRUE 会转换为 1，FALSE 会转换为 0。这使得 sum() 和 mean()
+非常适用于逻辑值：sum(x) 可以找出 x 中 TRUE 的数量，mean(x) 则可以找出比例。
+    
     ```{r}
     # How many flights left before 5am? (these usually indicate delayed
     # flights from the previous day)
+    # 多少架航班是在早上5点前出发的？（这通常表明前一天延误的航班数量）
     not_cancelled %>% 
       group_by(year, month, day) %>% 
       summarise(n_early = sum(dep_time < 500))
     
     # What proportion of flights are delayed by more than an hour?
+    # 延误超过1小时的航班比例是多少？
     not_cancelled %>% 
       group_by(year, month, day) %>% 
       summarise(hour_prop = mean(arr_delay > 60))
     ```
 
-### Grouping by multiple variables
+### Grouping by multiple variables | 按多个变量分组
 
 When you group by multiple variables, each summary peels off one level of the grouping. That makes it easy to progressively roll up a dataset:
+
+当使用多个变量进行分组时，每次的摘要统计会用掉一个分组变量。这样就可以轻松地对数据集进行循序渐进的分析：
 
 ```{r}
 daily <- group_by(flights, year, month, day)
@@ -789,9 +1030,13 @@ daily <- group_by(flights, year, month, day)
 
 Be careful when progressively rolling up summaries: it's OK for sums and counts, but you need to think about weighting means and variances, and it's not possible to do it exactly for rank-based statistics like the median. In other words, the sum of groupwise sums is the overall sum, but the median of groupwise medians is not the overall median.
 
-### Ungrouping
+在循序渐进地进行摘要分析时，需要小心：使用求和与计数操作是没问题的，但如果想要使用加权平均和方差的话，就要仔细考虑一下，在基于秩的统计数据（如中位数）上是无法进行这些操作的。换句话说，对分组求和的结果再求和就是对整体求和，但分组中位数的中位数可不是整体的中位数。
+
+### Ungrouping | 取消分组
 
 If you need to remove grouping, and return to operations on ungrouped data, use `ungroup()`. 
+
+如果想要取消分组，并回到未分组的数据继续操作，那么可以使用 ungroup() 函数：
 
 ```{r}
 daily %>% 
@@ -799,45 +1044,65 @@ daily %>%
   summarise(flights = n())  # all flights
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  Brainstorm at least 5 different ways to assess the typical delay 
     characteristics of a group of flights. Consider the following scenarios:
     
+    通过头脑风暴，至少找出 5 种方法来确定一组航班的典型延误特征。思考以下场景。
+    
     * A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of 
       the time.
+      一架航班 50% 的时间会提前 15 分钟，50% 的时间会延误 15 分钟。
       
     * A flight is always 10 minutes late.
+    一架航班总是会延误 10 分钟。
 
     * A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of 
       the time.
+    一架航班 50% 的时间会提前 30 分钟，50% 的时间会延误 30 分钟。
       
     * 99% of the time a flight is on time. 1% of the time it's 2 hours late.
+    一架航班 99% 的时间会准时，1% 的时间会延误 2 个小时。
     
     Which is more important: arrival delay or departure delay?
+    哪一种更重要：到达延误还是出发延误？
 
 1.  Come up with another approach that will give you the same output as 
     `not_cancelled %>% count(dest)` and 
     `not_cancelled %>% count(tailnum, wt = distance)` (without using 
     `count()`).
+    
+找出另外一种方法，这种方法要可以给出与 not_cancelled %>% count(dest) 和 not_ cancelled %>% count(tailnum, wt = distance) 同样的输出（不能使用 count()）。
 
 1.  Our definition of cancelled flights (`is.na(dep_delay) | is.na(arr_delay)`
     ) is slightly suboptimal. Why? Which is the most important column?
+    
+我们对已取消航班的定义 (is.na(dep_delay)) | (is.na(arr_delay)) 稍有欠佳。为什么？哪一列才是最重要的？
 
 1.  Look at the number of cancelled flights per day. Is there a pattern?
     Is the proportion of cancelled flights related to the average delay?
+    
+查看每天取消的航班数量。其中存在模式吗？已取消航班的比例与平均延误时间有关系吗？
 
 1.  Which carrier has the worst delays? Challenge: can you disentangle the
     effects of bad airports vs. bad carriers? Why/why not? (Hint: think about
     `flights %>% group_by(carrier, dest) %>% summarise(n())`)
+    
+哪个航空公司的延误情况最严重？挑战：你能否分清这是由于糟糕的机场设备，还是航空公司的问题？为什么能？为什么不能？（提示：考虑一下 flights %>% group_ by(carrier, dest) %>% summarize(n())。）
 
 1.  What does the `sort` argument to `count()` do. When might you use it?
 
-## Grouped mutates (and filters)
+count() 函数中的 sort 参数的作用是什么？何时应该使用这个参数？
+
+## Grouped mutates (and filters) | 分组新变量（和筛选器）
 
 Grouping is most useful in conjunction with `summarise()`, but you can also do convenient operations with `mutate()` and `filter()`:
 
+虽然与 summarize() 函数结合起来使用是最有效的，但分组也可以与 mutate() 和 filter() 函数结合，以完成非常便捷的操作。
+
 *   Find the worst members of each group:
+找出每个分组中最差的成员：
 
     ```{r}
     flights_sml %>% 
@@ -845,7 +1110,7 @@ Grouping is most useful in conjunction with `summarise()`, but you can also do c
       filter(rank(desc(arr_delay)) < 10)
     ```
 
-*   Find all groups bigger than a threshold:
+*   Find all groups bigger than a threshold: 找出大于某个阈值的所有分组
 
     ```{r}
     popular_dests <- flights %>% 
@@ -854,7 +1119,7 @@ Grouping is most useful in conjunction with `summarise()`, but you can also do c
     popular_dests
     ```
 
-*   Standardise to compute per group metrics:
+*   Standardise to compute per group metrics: 对数据进行标准化以计算分组指标
 
     ```{r}
     popular_dests %>% 
@@ -865,33 +1130,54 @@ Grouping is most useful in conjunction with `summarise()`, but you can also do c
 
 A grouped filter is a grouped mutate followed by an ungrouped filter. I generally avoid them except for quick and dirty manipulations: otherwise it's hard to check that you've done the manipulation correctly.
 
+分组筛选器的作用相当于分组新变量加上未分组筛选器。我一般不使用分组筛选器，除非是为了完成快速、粗略的数据处理，否则很难检查数据处理的结果是否正确。
+
 Functions that work most naturally in grouped mutates and filters are known as  window functions (vs. the summary functions used for summaries). You can learn more about useful window functions in the corresponding vignette: `vignette("window-functions")`.
 
-### Exercises
+在分组新变量和筛选器中最常使用的函数称为窗口函数（与用于统计的摘要函数相对）。你可以在相应的使用指南中学习到更多关于窗口函数的知识：vignette("window- functions")。
+
+### Exercises | 练习
 
 1.  Refer back to the lists of useful mutate and filtering functions. 
     Describe how each operation changes when you combine it with grouping.
+    
+    查看常用的新变量函数和筛选函数的列表。当它们与分组操作结合使用时，功能有哪些变化？
 
 1.  Which plane (`tailnum`) has the worst on-time record?
+
+哪一架飞机（用机尾编号来识别，tailnum）具有最差的准点记录？
 
 1.  What time of day should you fly if you want to avoid delays as much
     as possible?
     
+    如果想要尽量避免航班延误，那么应该在一天中的哪个时间搭乘飞机？s
+
+    
 1.  For each destination, compute the total minutes of delay. For each 
     flight, compute the proportion of the total delay for its destination.
+    
+    计算每个目的地的延误总时间的分钟数，以及每架航班到每个目的地的延误时间比例。
     
 1.  Delays are typically temporally correlated: even once the problem that
     caused the initial delay has been resolved, later flights are delayed 
     to allow earlier flights to leave. Using `lag()`, explore how the delay
     of a flight is related to the delay of the immediately preceding flight.
     
+    延误通常是由临时原因造成的：即使最初引起延误的问题已经解决，但因为要让前面的航班先起飞，所以后面的航班也会延误。使用 lag() 函数探究一架航班延误与前一架航班延误之间的关系。
+    
 1.  Look at each destination. Can you find flights that are suspiciously
     fast? (i.e. flights that represent a potential data entry error). Compute
     the air time of a flight relative to the shortest flight to that destination.
     Which flights were most delayed in the air?
     
+    查看每个目的地。你能否发现有些航班的速度快得可疑？（也就是说，这些航班的数据可能是错误的。）计算出到目的地的最短航线的飞行时间。哪架航班在空中的延误时间最长？
+    
 1.  Find all destinations that are flown by at least two carriers. Use that
     information to rank the carriers.
+    
+    找出至少有两个航空公司的所有目的地。使用数据集中的信息对航空公司进行排名。
 
 1.  For each plane, count the number of flights before the first delay 
     of greater than 1 hour.
+    
+    计算每架飞机在第一次延误超过 1 小时前的飞行次数。

@@ -1,29 +1,42 @@
-# Pipes
+# Pipes | 管道操作
 
-## Introduction
+## Introduction | 简介
 
 Pipes are a powerful tool for clearly expressing a sequence of multiple operations. So far, you've been using them without knowing how they work, or what the alternatives are. Now, in this chapter, it's time to explore the pipe in more detail. You'll learn the alternatives to the pipe, when you shouldn't use the pipe, and some useful related tools.
 
-### Prerequisites
+管道是一种强大的工具，可以清楚地表示由多个操作组成的一个操作序列。到目前为止， 我们已经知道了如何使用管道，但还不清楚其工作原理，也不知道它是否有替代方式。本章将更加详细地研究管道操作。你将学到管道的替代方式、何时不应该使用管道，以及其他一些有用的相关工具。
+
+### Prerequisites | 准备工作
 
 The pipe, `%>%`, comes from the __magrittr__ package by Stefan Milton Bache. Packages in the tidyverse load `%>%` for you automatically, so you don't usually load magrittr explicitly.  Here, however, we're focussing on piping, and we aren't loading any other packages, so we will load it explicitly.
+
+管道 %>% 来自于 Stefan Milton Bache 开发的 magrittr 包。因为 tidyverse 中的包会自动加载%>%，所以通常你无须显式地加载 magrittr。但接下来我们将重点讨论管道操作，且不加载任何其他 R 包，因此需要显式地加载 magrittr 包。
 
 ```{r setup, message = FALSE}
 library(magrittr)
 ```
 
-## Piping alternatives
+## Piping alternatives | 管道的替代方式
 
 The point of the pipe is to help you write code in a way that is easier to read and understand. To see why the pipe is so useful, we're going to explore a number of ways of writing the same code. Let's use code to tell a story about a little bunny named Foo Foo:
+
+管道操作的出发点是帮助你以清晰易懂的方式编写代码。为了说明管道如此有用的原因， 我们将探究同一段代码的不同编写方式。现在我们使用代码来讲述小兔福福的故事：
 
 > Little bunny Foo Foo  
 > Went hopping through the forest  
 > Scooping up the field mice  
-> And bopping them on the head  
+> And bopping them on the head 
+> 
+> 一只小兔叫福福 
+> 蹦蹦跳跳过森林
+> 抓起一窝小田鼠  
+> 每只头上打一下
 
 This is a popular Children's poem that is accompanied by hand actions.
+这是一首流传甚广的童谣，可以边唱边配合手部动作。
 
 We'll start by defining an object to represent little bunny Foo Foo:
+首先，我们定义一个对象来表示小兔福福：
 
 ```{r, eval = FALSE}
 foo_foo <- little_bunny()
@@ -31,16 +44,22 @@ foo_foo <- little_bunny()
 
 And we'll use a function for each key verb: `hop()`, `scoop()`, and `bop()`. Using this object and these verbs, there are (at least) four ways we could retell the story in code:
 
-1. Save each intermediate step as a new object.
-1. Overwrite the original object many times.
-1. Compose functions.
-1. Use the pipe.
+然后，我们使用函数来表示每个动作：hop()、scoop() 和 bop()。通过这个对象和这些函数，我们至少有 4 种方法来使用代码讲述这个故事：
+
+1. Save each intermediate step as a new object. •	将每个中间步骤保存为一个新对象；
+1. Overwrite the original object many times. •	多次重写初始对象；
+1. Compose functions. •	组合多个函数；
+1. Use the pipe. •	使用管道。
 
 We'll work through each approach, showing you the code and talking about the advantages and disadvantages.
 
-### Intermediate steps
+接下来我们会依次介绍每种方法，并讨论其优缺点。
+
+### Intermediate steps | 中间步骤
 
 The simplest approach is to save each step as a new object:
+
+最简单的方法是将每个中间步骤保存为一个新对象：
 
 ```{r, eval = FALSE}
 foo_foo_1 <- hop(foo_foo, through = forest)
@@ -50,13 +69,19 @@ foo_foo_3 <- bop(foo_foo_2, on = head)
 
 The main downside of this form is that it forces you to name each intermediate element. If there are natural names, this is a good idea, and you should do it. But many times, like this in this example, there aren't natural names, and you add numeric suffixes to make the names unique. That leads to two problems:
 
-1. The code is cluttered with unimportant names
+这种方法的最大缺点是，你必须为每个中间结果建立一个变量。如果这些变量确实有意义，那么这就是一种好方法，你也应该建立这些变量。但在很多情况下，比如在以上示例中，这些变量其实是没有什么实际意义的，你还必须使用数字后缀来区分这些变量。这样会造成两个问题。
 
-1. You have to carefully increment the suffix on each line. 
+1. The code is cluttered with unimportant names •	代码中充斥着大量不必要的变量。
+
+1. You have to carefully increment the suffix on each line. •	你必须在每一行代码中小心翼翼地修改变量后缀。
 
 Whenever I write code like this, I invariably use the wrong number on one line and then spend 10 minutes scratching my head and trying to figure out what went wrong with my code.
 
+每次编写这种代码，我都会在某行用错数字，然后花 10 分钟一边挠着脑袋，一边努力找出代码的错误。
+
 You may also worry that this form creates many copies of your data and takes up a lot of memory. Surprisingly, that's not the case. First, note that proactively worrying about memory is not a useful way to spend your time: worry about it when it becomes a problem (i.e. you run out of memory), not before. Second, R isn't stupid, and it will share columns across data frames, where possible. Let's take a look at an actual data manipulation pipeline where we add a new column to `ggplot2::diamonds`:
+
+你可能还会担心这种代码创建的多个数据副本会占用大量内存。出人意料的是，这种担心大可不必。首先，你不应该将时间花在过早担心内存上。当内存确实成为问题（即内存耗尽）时再担心便是，否则就是杞人忧天。其次，R 是很智能的，它会尽量在数据框之间共享数据列。以一个实际的数据处理流程为例，我们向数据集 ggplot2::diamonds 中添加一个新列：
 
 ```{r}
 diamonds <- ggplot2::diamonds
@@ -70,11 +95,15 @@ pryr::object_size(diamonds, diamonds2)
 
 `pryr::object_size()` gives the memory occupied by all of its arguments. The results seem counterintuitive at first:
 
-* `diamonds` takes up 3.46 MB,
-* `diamonds2` takes up 3.89 MB,
-* `diamonds` and `diamonds2` together take up 3.89 MB!
+函数 pryr::object_size() 会返回其所有参数占用的内存。以下结果乍一看似乎有悖常理。
+
+* `diamonds` takes up 3.46 MB, 占用了 3.46MB 内存。
+* `diamonds2` takes up 3.89 MB, 占用了 3.89MB 内存。
+* `diamonds` and `diamonds2` together take up 3.89 MB! 一共占用了 3.89MB 内存！
 
 How can that work? Well, `diamonds2` has 10 columns in common with `diamonds`: there's no need to duplicate all that data, so the two data frames have variables in common. These variables will only get copied if you modify one of them. In the following example, we modify a single value in `diamonds$carat`. That means the `carat` variable can no longer be shared between the two data frames, and a copy must be made. The size of each data frame is unchanged, but the collective size increases:
+
+怎么会这样呢？ diamonds2 和 diamonds 有 10 个公共的数据列，这些列中的数据没必要再复制一份，因此这两个数据框中有公用变量。公用变量只有在修改时才会进行复制。在以下的示例中，我们修改了 diamonds$carat 中的一个值。这意味着 carat 变量不再由两个数据框共享，而必须创建一个副本。每个数据框的大小保持不变，但总的大小增加了：
 
 ```{r}
 diamonds$carat[1] <- NA
@@ -85,9 +114,13 @@ pryr::object_size(diamonds, diamonds2)
 
 (Note that we use `pryr::object_size()` here, not the built-in `object.size()`. `object.size()` only takes a single object so it can't compute how data is shared across multiple objects.)
 
-### Overwrite the original
+（注意，我们在该示例中使用了 pryr::object_size()，而不是内置函数 object_size。因为 object_size() 只能接受一个参数，所以它无法计算在多个对象间共享的数据所占用的空间。）
+
+### Overwrite the original | 重写初始对象
 
 Instead of creating intermediate objects at each step, we could overwrite the original object:
+
+除了为每个中间步骤创建新对象，我们还可以重写初始对象：
 
 ```{r, eval = FALSE}
 foo_foo <- hop(foo_foo, through = forest)
@@ -97,15 +130,23 @@ foo_foo <- bop(foo_foo, on = head)
 
 This is less typing (and less thinking), so you're less likely to make mistakes. However, there are two problems:
 
+因为这种方式需要的输入更少（也无须过多思考），所以不容易出错，但是有两个问题。
+
 1.  Debugging is painful: if you make a mistake you'll need to re-run the 
     complete pipeline from the beginning.
     
+    •	调试起来太痛苦了。如果出错，那么你就必须从头开始运行整个流程。
+    
 1.  The repetition of the object being transformed (we've written `foo_foo` six 
     times!) obscures what's changing on each line. 
+    
+    •	对象的多次重写（输入了 6 次 foo_foo ！）阻碍我们看清每行代码中发生的变化。
 
-### Function composition
+### Function composition | 函数组合
 
 Another approach is to abandon assignment and just string the function calls together:
+
+另一种方法是将多个函数组合在一起，这样可以避免赋值语句：
 
 ```{r, eval = FALSE}
 bop(
@@ -120,9 +161,12 @@ bop(
 Here the disadvantage is that you have to read from inside-out, from right-to-left, and that the arguments end up spread far apart (evocatively called the 
 [dagwood sandwhich](https://en.wikipedia.org/wiki/Dagwood_sandwich) problem). In short, this code is hard for a human to consume.
 
-### Use the pipe 
+这种方法的缺点是，必须按照从内向外和从右向左的顺序阅读代码，而且参数太分散了（人们形象地将这种代码称为多层三明治）。简而言之，这种代码不适合人类阅读。
+
+### Use the pipe | 使用管道
 
 Finally, we can use the pipe:
+最后，我们可以使用管道：
 
 ```{r, eval = FALSE}
 foo_foo %>%
@@ -133,7 +177,11 @@ foo_foo %>%
 
 This is my favourite form, because it focusses on verbs, not nouns. You can read this series of function compositions like it's a set of imperative actions. Foo Foo hops, then scoops, then bops. The downside, of course, is that you need to be familiar with the pipe. If you've never seen `%>%` before, you'll have no idea what this code does. Fortunately, most people pick up the idea very quickly, so when you share your code with others who aren't familiar with the pipe, you can easily teach them.
 
+这种方式是我们的最爱，因为它的重点在于动词，而不是名词。在阅读这一串函数组合时，你可以将它们当成一系列规定动作。福福蹦跳着，然后抓田鼠，接着打田鼠。至于这种方式的缺点，当然就是你必须先熟悉管道。如果以前从来没见过 %>%，那么你根本搞不清这段代码的意义。幸好大多数人都可以很快理解这种思想，因此，当与不熟悉管道操作的人分享这种代码时，你可以很轻松地教会他们。
+
 The pipe works by performing a "lexical transformation": behind the scenes, magrittr reassembles the code in the pipe to a form that works by overwriting an intermediate object. When you run a pipe like the one above, magrittr does something like this:
+
+管道的工作原理就是进行“词法变换”。在这种方式背后，magrittr 会重新组合管道代码， 按照重写中间变量的方式来运行。当执行以上示例中的管道操作时，实际上 magrittr 执行的是类似以下的代码：
 
 ```{r, eval = FALSE}
 my_pipe <- function(.) {
@@ -145,9 +193,12 @@ my_pipe(foo_foo)
 ```
 
 This means that the pipe won't work for two classes of functions:
+这意味着管道不能支持以下两类函数。
 
 1.  Functions that use the current environment. For example, `assign()`
     will create a new variable with the given name in the current environment:
+    
+    •	使用当前环境的函数。例如，assign() 函数会在当前环境中使用给定名称创建一个新变量：
      
     ```{r}
     assign("x", 10)
@@ -161,6 +212,8 @@ This means that the pipe won't work for two classes of functions:
     a temporary environment used by `%>%`. If you do want to use assign with the
     pipe, you must be explicit about the environment:
     
+    通过管道方式使用 assign() 函数是无效的，因为这时赋值操作是在由 %>% 建立的一个临时环境中进行的。如果要通过管道方式来使用 assign()，就必须显式地指定环境：
+    
     ```{r}
     env <- environment()
     "x" %>% assign(100, envir = env)
@@ -168,14 +221,20 @@ This means that the pipe won't work for two classes of functions:
     ```
     
     Other functions with this problem include `get()` and `load()`.
+    
+    具有这个问题的其他函数包括 get() 和 load()。
 
 1.  Functions that use lazy evaluation. In R, function arguments
     are only computed when the function uses them, not prior to calling the 
     function. The pipe computes each element in turn, so you can't 
     rely on this behaviour.
     
+    •	使用惰性求值的函数。在 R 中，不会在函数调用前计算这种函数的参数，只在函数使用时才进行计算。管道依次计算每个参数，因此不能用在这种函数上。
+    
     One place that this is a problem is `tryCatch()`, which lets you capture
     and handle errors:
+    
+    具有这种问题的一个函数是 tryCatch()，它可以捕获并处理程序错误：
     
     ```{r, error = TRUE}
     tryCatch(stop("!"), error = function(e) "An error")
@@ -187,10 +246,15 @@ This means that the pipe won't work for two classes of functions:
     There are a relatively wide class of functions with this behaviour,
     including `try()`, `suppressMessages()`, and `suppressWarnings()`
     in base R.
+    
+    使用惰性求值的函数还是很多的，其中包括 R 基础包中的 try()、suppressMessages() 和 suppressWarnings()。
+
   
-## When not to use the pipe
+## When not to use the pipe | 不适合使用管道的情形
 
 The pipe is a powerful tool, but it's not the only tool at your disposal, and it doesn't solve every problem! Pipes are most useful for rewriting a fairly short linear sequence of operations. I think you should reach for another tool when:
+
+管道是一种功能强大的工具，但并不是你的唯一选择，也不是“万能药”。管道最大的用武之地是重写一段较短的线性操作序列。对于以下几种情形，我们认为最好不要使用管道。
 
 * Your pipes are longer than (say) ten steps. In that case, create 
   intermediate objects with meaningful names. That will make debugging easier,
@@ -198,26 +262,38 @@ The pipe is a powerful tool, but it's not the only tool at your disposal, and it
   it easier to understand your code, because the variable names can help 
   communicate intent.
   
+  •	操作步骤超过 10（参考值）个。这种情况下，应该使用有意义的变量来保存中间结果。这样会使得调试更加容易，因为你更容易检查中间结果；还可以使得代码更容易理解， 因为有意义的变量名称可以帮助别人明白你的代码意图。
+  
 * You have multiple inputs or outputs. If there isn't one primary object
   being transformed, but two or more objects being combined together,
   don't use the pipe.
+  
+  •	有多个输入和输出。如果需要处理的不是一个基本对象，而是组合在一起的两个或多个对象，就不要使用管道。
 
 * You are starting to think about a directed graph with a complex
   dependency structure. Pipes are fundamentally linear and expressing 
   complex relationships with them will typically yield confusing code.
+  
+  •	操作步骤构成一张具有复杂依赖关系的有向图。管道基本上是一种线性操作，如果使用它来表示复杂的关系，通常会使得代码混乱不清。
 
-## Other tools from magrittr
+## Other tools from magrittr | magrittr中的其他工具
 
 All packages in the tidyverse automatically make `%>%` available for you, so you don't normally load magrittr explicitly. However, there are some other useful tools inside magrittr that you might want to try out:
+
+tidyverse 中的所有包都会自动加载 %>%，因此一般不用显式加载 magrittr。然而，magrittr包中还有其他一些有用的工具，你或许想要尝试一下。
 
 *   When working with more complex pipes, it's sometimes useful to call a 
     function for its side-effects. Maybe you want to print out the current 
     object, or plot it, or save it to disk. Many times, such functions don't 
     return anything, effectively terminating the pipe.
     
+    •	在使用比较复杂的管道操作时，有时会因为某个函数的副作用而调用它。比如，你可能想要打印或绘制出当前对象，或者想将它保存在硬盘中。很多时候这种函数不会返回任何结果，只会有效地结束管道操作。
+    
     To work around this problem, you can use the "tee" pipe. `%T>%` works like 
     `%>%` except that it returns the left-hand side instead of the right-hand 
     side. It's called "tee" because it's like a literal T-shaped pipe.
+    
+    为了解决这个问题，你可以使用“T”管道操作符 %T>%。它的用法和 %>% 差不多，只是它返回的是左侧项而不是右侧项。之所以称它为“T”操作符，是因为它起的作用类似于 T 形三通管道：
 
     ```{r}
     rnorm(100) %>%
@@ -238,6 +314,8 @@ All packages in the tidyverse automatically make `%>%` available for you, so you
     refer to them explicitly. This is useful when working with many functions 
     in base R:
     
+    •	如果使用的函数不是基于数据框的（也就是说，你必须传给这些函数一个独立的向量， 不能传给它们数据框或基于数据框求值的表达式），那么你就会发现爆炸操作符 %$% 的妙处。它可以将数据框中的变量“炸出来”，让你显式地引用。当需要使用 R 基础包中的很多函数时，这个操作符特别奏效：
+    
     ```{r}
     mtcars %$%
       cor(disp, mpg)
@@ -245,13 +323,15 @@ All packages in the tidyverse automatically make `%>%` available for you, so you
 
 *   For assignment magrittr provides the `%<>%` operator which allows you to
     replace code like:
+    
+    •	magrittr 提供了 %<>% 操作符来执行赋值操作，它可以将以下代码：
   
     ```{r, eval = FALSE}
     mtcars <- mtcars %>% 
       transform(cyl = cyl * 2)
     ```
     
-    with
+    with 替代为
      
     ```{r, eval = FALSE}
     mtcars %<>% transform(cyl = cyl * 2)
@@ -262,3 +342,5 @@ All packages in the tidyverse automatically make `%>%` available for you, so you
     In my opinion, a little bit of duplication (i.e. repeating the 
     name of the object twice) is fine in return for making assignment
     more explicit.
+    
+    我不是很喜欢这个操作符，因为我认为赋值是一种非常特殊的操作，如果需要进行赋值，那么就应该使赋值语句尽量清晰。我的看法是，一点小小的重复（即重复输入对象名称两次）是必要的，它可以更加明确地表示出赋值语句。

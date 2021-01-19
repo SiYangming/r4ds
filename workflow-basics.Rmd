@@ -1,12 +1,18 @@
-# Workflow: basics
+# Workflow: basics | 工作流：基础
 
 You now have some experience running R code. We didn't give you many details, but you've obviously figured out the basics, or you would've thrown this book away in frustration! Frustration is natural when you start programming in R, because it is such a stickler for punctuation, and even one character out of place will cause it to complain. But while you should expect to be a little frustrated, take comfort in that it's both typical and temporary: it happens to everyone, and the only way to get over it is to keep trying.
 
+现在你已经拥有了运行 R 代码的一些经验。我们没有介绍太多细节，但你肯定已经掌握了 R 的基础知识，否则你早已沮丧地将本书束之高阁了。当开始用R 编程时，感到受挫是很自然的，因为 R 甚至对标点符号都非常严格，即使一个字符的错误也会导致问题。但是当有了一些心理准备后，你就可以心安理得地接受这些挫折，知道这是正常的，也是暂时的：每个人都会遇到困难，克服困难的唯一方法就是不断尝试。
+
 Before we go any further, let's make sure you've got a solid foundation in running R code, and that you know about some of the most helpful RStudio features.
 
-## Coding basics
+在进一步学习之前，必须先确保你已经具有了运行 R 代码的坚实基础，并且掌握了RStudio 中一些最有用的功能。
+
+## Coding basics | 代码基础
 
 Let's review some basics we've so far omitted in the interests of getting you plotting as quickly as possible. You can use R as a calculator:
+
+为了让你尽快学会绘图，我们省略了一些基础知识，现在就来复习一下。你可以将R 当作计算器来使用：
 
 ```{r}
 1 / 200 * 30
@@ -15,6 +21,7 @@ sin(pi / 2)
 ```
 
 You can create new objects with `<-`:
+你可以使用 <- 来创建新对象：
 
 ```{r}
 x <- 3 * 4
@@ -22,17 +29,25 @@ x <- 3 * 4
 
 All R statements where you create objects, __assignment__ statements, have the same form:
 
+创建对象的所有 R 语句（即赋值语句）都有同样的形式：
+
 ```{r eval = FALSE}
 object_name <- value
 ```
 
 When reading that code say "object name gets value" in your head.
 
+在阅读这行代码时，你可以在脑海中默念“某个对象名得到了某个值”。
+
 You will make lots of assignments and `<-` is a pain to type. Don't be lazy and use `=`: it will work, but it will cause confusion later. Instead, use RStudio's keyboard shortcut: Alt + - (the minus sign). Notice that RStudio automagically surrounds `<-` with spaces, which is a good code formatting practice. Code is miserable to read on a good day, so giveyoureyesabreak and use spaces.
 
-## What's in a name?
+你可能会进行大量的赋值操作，输入 <- 太痛苦了。但不要偷懒使用 =，虽然 = 确实也可以赋值，但之后会引起混淆。你可以使用 RStudio 快捷键：Alt+-（Alt 加上减号）。注意， RStudio 会自动在 <- 的两端加上空格，这是一个非常好的编码习惯。读代码是苦中作乐的一件事情，因此，用空格让你的眼睛稍感轻松吧。
+
+## What's in a name? | 对象名称
 
 Object names must start with a letter, and can only contain letters, numbers, `_` and `.`. You want your object names to be descriptive, so you'll need a convention for multiple words. We recommend __snake_case__ where you separate lowercase words with `_`. 
+
+对象名称必须以字母开头，并且只能包含字母、数字、_ 和 .。如果想让对象名称具有描述性，那么就应该在使用多个单词时遵循某种命名惯例。我推荐使用 snake_case 命名法， 也就是使用小写单词，并用 _ 分隔：
 
 ```{r, eval = FALSE}
 i_use_snake_case
@@ -43,13 +58,17 @@ And_aFew.People_RENOUNCEconvention
 
 We'll come back to code style later, in [functions].
 
+我们将在函数中继续讨论编码风格。
+
 You can inspect an object by typing its name:
+你可以通过输入对象名称来查看这个对象：
 
 ```{r}
 x
 ```
 
 Make another assignment:
+再进行赋值：
 
 ```{r}
 this_is_a_really_long_name <- 2.5
@@ -57,15 +76,21 @@ this_is_a_really_long_name <- 2.5
 
 To inspect this object, try out RStudio's completion facility: type "this", press TAB, add characters until you have a unique prefix, then press return.
 
+要想查看这个变量，可以使用 RStudio 的自动完成功能：输入“this”，按 Tab 键，继续输入字符直到完全匹配这个变量，然后按回车键。
+
 Ooops, you made a mistake! `this_is_a_really_long_name` should have value 3.5 not 2.5. Use another keyboard shortcut to help you fix it.  Type "this" then press Cmd/Ctrl + ↑. That will list all the commands you've typed that start those letters. Use the arrow keys to navigate, then press enter to retype the command. Change 2.5 to 3.5 and rerun.
 
+哎呀，我们犯了一个错误！ this_is _a_really_long_name 的值应该是 3.5，而不是 2.5。这时可以使用另一种快捷键来修改对象。在命令窗口中输入“this”，然后按 Ctrl+ ↑。这样就可以列出所有输入过的以“this”开头的命令。使用箭头键上下移动，然后按回车键重新输入该命令。将 2.5 修改为 3.5，并按回车键。
+
 Make yet another assignment:
+再进行一次赋值：
 
 ```{r}
 r_rocks <- 2 ^ 3
 ```
 
 Let's try to inspect it:
+查看一下这个对象：
 
 ```{r, eval = FALSE}
 r_rock
@@ -76,9 +101,13 @@ R_rocks
 
 There's an implied contract between you and R: it will do the tedious computation for you, but in return, you must be completely precise in your instructions. Typos matter. Case matters.
 
-## Calling functions
+R 和用户之间有一个隐含约定：R 可以替用户执行那些单调乏味的计算，但前提是用户必须输入完全精确的指令。不能有输入错误，还要区分大小写。
+
+## Calling functions | 函数调用
 
 R has a large collection of built-in functions that are called like this:
+
+R 中有大量内置函数，调用方式如下：
 
 ```{r eval = FALSE}
 function_name(arg1 = val1, arg2 = val2, ...)
@@ -86,7 +115,11 @@ function_name(arg1 = val1, arg2 = val2, ...)
 
 Let's try using `seq()` which makes regular **seq**uences of numbers and, while we're at it, learn more helpful features of RStudio. Type `se` and hit TAB. A popup shows you possible completions. Specify `seq()` by typing more (a "q") to disambiguate, or by using ↑/↓ arrows to select. Notice the floating tooltip that pops up, reminding you of the function's arguments and purpose. If you want more help, press F1 to get all the details in the help tab in the lower right pane. 
 
+我们尝试使用 seq() 函数，它可以生成规则的数值序列，在学习这个函数的同时，我们还可以学习 RStudio 的更多有用功能。输入 se，并按 Tab 键。这时会弹出所有可能的自动完成命令。继续输入（“q”）以消除歧义，或者使用↑和↓箭头键来选择，以选定 seq() 函数。注意弹出的浮动提示信息，它可以告诉你这个函数的参数和作用。如果想要获得更多帮助，按 F1 键就可以在右下角窗格的帮助标签页中看到详细的帮助信息。
+
 Press TAB once more when you've selected the function you want. RStudio will add matching opening (`(`) and closing (`)`) parentheses for you. Type the arguments `1, 10` and hit return.
+
+选定需要的函数后再按一次 Tab 键。RStudio 会为你自动添加开括号（(）和闭括号（)）。输入参数 1, 10，然后按回车键：
 
 ```{r}
 seq(1, 10)
@@ -94,11 +127,15 @@ seq(1, 10)
 
 Type this code and notice you get similar assistance with the paired quotation marks:
 
+输入以下代码，你会发现 RStudio 也会自动完成一对双引号以方便输入：
+
 ```{r}
 x <- "hello world"
 ```
 
 Quotation marks and parentheses must always come in a pair. RStudio does its best to help you, but it's still possible to mess up and end up with a mismatch. If this happens, R will show you the continuation character "+":
+
+引号和括号必须一直成对出现。RStudio 会尽力帮助我们，但还是有出错并导致不匹配的可能。如果出现不匹配，R 会显示一个 + 号：
 
 ```
 > x <- "hello
@@ -107,7 +144,11 @@ Quotation marks and parentheses must always come in a pair. RStudio does its bes
 
 The `+` tells you that R is waiting for more input; it doesn't think you're done yet. Usually that means you've forgotten either a `"` or a `)`. Either add the missing pair, or press ESCAPE to abort the expression and try again.
 
+`+` 号表明 R 在等待继续输入；它认为你还没有完成输入。这通常意味着你漏掉了一个 " 或者 )。你可以添加漏掉的部分，也可以按 Esc 键中止命令来重新输入。
+
 If you make an assignment, you don't get to see the value. You're then tempted to immediately double-check the result:
+
+如果进行了一次赋值，R 不会显示出赋值结果。你最好立刻检查一下：
 
 ```{r}
 y <- seq(1, 10, length.out = 5)
@@ -116,32 +157,42 @@ y
 
 This common action can be shortened by surrounding the assignment with parentheses, which causes assignment and "print to screen" to happen.
 
+这种常用的操作可以简化一下，用括号将赋值语句括起来就可以了，这样相当于连续执行赋值语句和“输出到屏幕”的操作：
+
 ```{r}
 (y <- seq(1, 10, length.out = 5))
 ```
 
 Now look at your environment in the upper right pane:
 
+现在看一下左上角窗格中的程序环境：
+
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("screenshots/rstudio-env.png")
 ```
 
 Here you can see all of the objects that you've created.
+你可以在这里看到创建的所有对象。
 
-## Exercises
+## Exercises | 练习
 
 1.  Why does this code not work?
+为什么以下代码不能正常运行？
 
     ```{r, error = TRUE}
     my_variable <- 10
-    my_varıable
+    my_varable
     ```
     
     Look carefully! (This may seem like an exercise in pointlessness, but
     training your brain to notice even the tiniest difference will pay off
     when programming.)
+
+    仔细查看！（这个练习似乎没什么意义，但却是对思维的一种训练，它会让你意识到， 在编程时，即使一点微小的区别也会导致程序无法正常运行。）
     
 1.  Tweak each of the following R commands so that they run correctly:
+
+修改以下每段 R 代码，使其可以正常运行。
 
     ```{r, eval = FALSE}
     library(tidyverse)
@@ -155,4 +206,6 @@ Here you can see all of the objects that you've created.
     
 1.  Press Alt + Shift + K. What happens? How can you get to the same place
     using the menus?
+    
+按 Alt+Shift+K 组合键会发生什么情况？如何使用菜单完成同样的操作？
 

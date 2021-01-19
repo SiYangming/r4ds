@@ -1,12 +1,17 @@
-# Model basics
+# Model basics | 基础模型
 
-## Introduction
+## Introduction | 简介
 
 The goal of a model is to provide a simple low-dimensional summary of a dataset. In the context of this book we're going to use models to partition data into patterns and residuals. Strong patterns will hide subtler trends, so we'll use models to help peel back layers of structure as we explore a dataset.
 
+建立模型的目的是提供一个简单的、低维度的数据集摘要。在本书中，我们使用模型的目的是将数据划分为模式和残差。因为强大的模式往往会掩盖住微妙的趋势，所以我们将借助模型探索数据集，一层层地剥开覆盖在数据集结构上的神秘面纱。
+
 However, before we can start using models on interesting, real, datasets, you need to understand the basics of how models work. For that reason, this chapter of the book is unique because it uses only simulated datasets. These datasets are very simple, and not at all interesting, but they will help you understand the essence of modelling before you apply the same techniques to real data in the next chapter.
 
+但是，在开始对感兴趣的真实数据应用模型前，我们需要先理解模型的工作原理。因此， 本章是特殊的一章，它使用的是模拟数据集。这些数据集非常简单，而且一点儿也不有趣，但它们确实可以帮助你理解建模的本质，这样你就可以在下一章中使用同样的技术来处理真实数据了。
+
 There are two parts to a model:
+建模过程可以分为两个阶段。
 
 1.  First, you define a __family of models__ that express a precise, but 
     generic, pattern that you want to capture. For example, the pattern 
@@ -15,16 +20,25 @@ There are two parts to a model:
     `y = a_1 * x ^ a_2`. Here, `x` and `y` are known variables from your
     data, and `a_1` and `a_2` are parameters that can vary to capture 
     different patterns.
+    
+    首先，你需要定义一个模型族来表示一种精确但一般性的模式，这种模式就是我们想要捕获的。例如，模式可以是一条直线或一条二次曲线。你可以用方程来表示模型族，比如 y = a_1 * x + a_2 或 y = a_1 * x ^ a_2，其中 x 和 y 是数据集中的已知变量，a_1 和 a_2 是参数。我们可以通过改变参数来捕获不同的模式。
 
 1.  Next, you generate a __fitted model__ by finding the model from the 
     family that is the closest to your data. This takes the generic model 
     family and makes it specific, like `y = 3 * x + 7` or `y = 9 * x ^ 2`.
+    
+    接下来你要生成一个拟合模型，方法是从模型族中找出最接近数据的一个模型。这个阶段使得一般性的模型族具体化为特定模型，如 y = 3 * x + 7 或 y = 9 * x ^ 2。
 
 It's important to understand that a fitted model is just the closest model from a family of models. That implies that you have the "best" model (according to some criteria); it doesn't imply that you have a good model and it certainly doesn't imply that the model is "true". George Box puts this well in his famous aphorism:
 
+拟合模型只是模型族中与数据最接近的一个模型，理解这一点非常重要。这意味着你找到了“最佳”模型（按照某些标准），但并不意味着你找到了良好的模型，而且也绝不代表这个模型是“真的”。George Box 有一句名言说得很好：
+
 > All models are wrong, but some are useful.
+> 所有模型都是错误的，但有些是有用的。
 
 It's worth reading the fuller context of the quote:
+
+这句名言的完整上下文值得一读。
 
 > Now it would be very remarkable if any system existing in the real world 
 > could be exactly represented by any simple model. However, cunningly chosen 
@@ -34,16 +48,23 @@ It's worth reading the fuller context of the quote:
 > frequently provides a useful approximation and furthermore its structure is 
 > informative since it springs from a physical view of the behavior of gas 
 > molecules.
+> 如果一个简单模型可以精确表示真实世界中的某个系统，那将非常了不起。然而， 巧妙地选择简约模型经常可以提供非常好的近似表示。例如，定律 pV = RT 通过一个常数 R 将“理想”气体的压强 p、体积 V 和温度 T 关联起来。虽然这对于任何真实气体来说都是不精确的，但在很多情况下都是一种良好的近似。此外，这个方程的结构包含非常丰富的信息，因为它来自于对气体分子行为的实证研究。
 > 
 > For such a model there is no need to ask the question "Is the model true?". 
 > If "truth" is to be the "whole truth" the answer must be "No". The only 
 > question of interest is "Is the model illuminating and useful?".
+> 对于这样的模型，我们不需要提出“这个模型是真的吗？”这类问题。如果“真”的含义是“绝对真”，那么答案肯定是“不”。我们唯一感兴趣的问题是： “模型是否具有启发性，是否有用？”
+
 
 The goal of a model is not to uncover truth, but to discover a simple approximation that is still useful. 
 
-### Prerequisites
+模型的目标不是发现真理，而是获得简单但有价值的近似。
+
+### Prerequisites | 准备工作
 
 In this chapter we'll use the modelr package which wraps around base R's modelling functions to make them work naturally in a pipe.
+
+本章将使用 modelr 包对 R 基础包中的建模函数进行包装，使其可以支持管道操作。
 
 ```{r setup, message = FALSE}
 library(tidyverse)
@@ -52,9 +73,11 @@ library(modelr)
 options(na.action = na.warn)
 ```
 
-## A simple model
+## A simple model | 一个简单模型
 
 Lets take a look at the simulated dataset `sim1`, included with the modelr package. It contains two continuous variables, `x` and `y`. Let's plot them to see how they're related:
+
+我们研究一下模拟数据集 sim1，它包含两个连续型变量 x 和 y。我们将这两个变量绘制出来，以查看二者间的关系：
 
 ```{r}
 ggplot(sim1, aes(x, y)) + 
@@ -62,6 +85,8 @@ ggplot(sim1, aes(x, y)) +
 ```
 
 You can see a strong pattern in the data. Let's use a model to capture that pattern and make it explicit. It's our job to supply the basic form of the model. In this case, the relationship looks linear, i.e. `y = a_0 + a_1 * x`.  Let's start by getting a feel for what models from that family look like by randomly generating a few and overlaying them on the data. For this simple case, we can use `geom_abline()` which takes a slope and intercept as parameters. Later on we'll learn more general techniques that work with any model.
+
+你可以看到数据中存在一种非常强的模式。接下来我们使用模型来捕获这种模式，并将其明确表示出来。我们的任务是确定模型的基本形式。在以上示例中，变量间的关系应该是线性的，即 y= a_0 + a_1 * x。首先，我们随机生成一些模型，并将其覆盖到数据上，通过这种方式感受一下这个模型族中的模型形式。对于这个简单示例，我们可以使用 geom_ abline() 函数，它接受斜率和截距作为参数。随后我们将学习可以用于任意模型的更通用的技术：
 
 ```{r}
 models <- tibble(
@@ -76,7 +101,11 @@ ggplot(sim1, aes(x, y)) +
 
 There are 250 models on this plot, but a lot are really bad! We need to find the good models by making precise our intuition that a good model is "close" to the data. We need a way to quantify the distance between the data and a model. Then we can fit the model by finding the value of `a_0` and `a_1` that generate the model with the smallest distance from this data.
 
+这张图中有 250 个模型，但很多都是非常糟糕的！直觉告诉我们，良好的模型应该与数据非常“接近”，因此我们需要一种方法来量化数据与模型之间的距离。然后，找出使得模型与数据间的距离最近的 a_0 和 a_1 的值，就可以拟合出最优模型。
+
 One easy place to start is to find the vertical distance between each point and the model, as in the following diagram. (Note that I've shifted the x values slightly so you can see the individual distances.)
+
+其中一种简单的方法是找出每个数据点与模型之间的垂直距离，如下图所示。（注意，我们将 x 值稍稍移动了一下，以便能够看清每个距离。）
 
 ```{r, echo = FALSE}
 dist1 <- sim1 %>% 
@@ -94,7 +123,11 @@ ggplot(dist1, aes(x1, y)) +
 
 This distance is just the difference between the y value given by the model (the __prediction__), and the actual y value in the data (the __response__).
 
+这个距离就是由模型计算出的 y 值（预测值）与数据中的实际 y 值（响应变量）之间的差。
+
 To compute this distance, we first turn our model family into an R function. This takes the model parameters and the data as inputs, and gives values predicted by the model as output:
+
+为了计算出这个距离，首先要将模型族转换为一个 R 函数。这个函数将模型参数和数据作为输入，并使用模型预测值作为输出：
 
 ```{r}
 model1 <- function(a, data) {
@@ -105,7 +138,11 @@ model1(c(7, 1.5), sim1)
 
 Next, we need some way to compute an overall distance between the predicted and actual values. In other words, the plot above shows 30 distances: how do we collapse that into a single number?
 
+接下来，我们需要某种方法来计算预测值与实际值之间的总体距离。换句话说，图中显示了 30 个距离，我们如何将这些距离转换成一个数值呢？
+
 One common way to do this in statistics to use the "root-mean-squared deviation". We compute the difference between actual and predicted, square them, average them, and the take the square root. This distance has lots of appealing mathematical properties, which we're not going to talk about here. You'll just have to take my word for it!
+
+要想完成这个任务，统计学中的一种常用方法是计算“均方根误差”。先计算实际值与预测值之间的差，对其取平方，然后求平均数，最后再计算出平方根。这种距离表示方式具有很多奇妙的数学特性，这里就不介绍了。相信我们吧，没错的！
 
 ```{r}
 measure_distance <- function(mod, data) {
@@ -116,6 +153,8 @@ measure_distance(c(7, 1.5), sim1)
 ```
 
 Now we can use purrr to compute the distance for all the models defined above. We need a helper function because our distance function expects the model as a numeric vector of length 2.
+
+现在可以使用 purrr 来计算前面定义的所有模型和数据间的距离了。我们需要一个辅助函数，因为距离函数希望模型是一个长度为 2 的数值向量：
 
 ```{r}
 sim1_dist <- function(a1, a2) {
@@ -129,6 +168,8 @@ models
 
 Next, let's overlay the 10 best models on to the data. I've coloured the models by `-dist`: this is an easy way to make sure that the best models (i.e. the ones with the smallest distance) get the brighest colours.
 
+下一步，我们将最好的 10 个模型覆盖到数据上。使用 -dist 为模型上色，这样我们就很容易看出，最佳模型（即距离最小的模型）具有最明亮的颜色：
+
 ```{r}
 ggplot(sim1, aes(x, y)) + 
   geom_point(size = 2, colour = "grey30") + 
@@ -140,6 +181,8 @@ ggplot(sim1, aes(x, y)) +
 
 We can also think about these models as observations, and visualising with a scatterplot of `a1` vs  `a2`, again coloured by `-dist`. We can no longer directly see how the model compares to the data, but we can see many models at once. Again, I've highlighted the 10 best models, this time by drawing red circles underneath them.
 
+我们还可以将这些模型看作观测，并使用由 a1 和 a2 组成的一张散点图来表示它们，还是使用 -dist 进行上色。虽然这样不能直接看到模型与数据间的比较，但我们可以同时看到很多模型。同样，我们高亮显示前 10 个最佳模型，这次是通过在其下面画出红色圆圈：
+
 ```{r}
 ggplot(models, aes(a1, a2)) +
   geom_point(data = filter(models, rank(dist) <= 10), size = 4, colour = "red") +
@@ -147,6 +190,8 @@ ggplot(models, aes(a1, a2)) +
 ```
 
 Instead of trying lots of random models, we could be more systematic and generate an evenly spaced grid of points (this is called a grid search). I picked the parameters of the grid roughly by looking at where the best models were in the plot above.
+
+相较于检查多个随机模型，我们使用一种更加系统化的方法来找出模型参数（这种方法称为网格搜索法）。首先，我们生成一张分布均匀的数据点网格，然后将这个网格与前面图中的 10 个最佳模型绘制在一张图中，凭借最佳模型在网格中的位置就可以找出模型参数的粗略值：
 
 ```{r}
 grid <- expand.grid(
@@ -163,6 +208,8 @@ grid %>%
 
 When you overlay the best 10 models back on the original data, they all look pretty good:
 
+如果将这 10 个最佳模型重新覆盖到原始数据上，就可以看出效果还是很不错的：
+
 ```{r}
 ggplot(sim1, aes(x, y)) + 
   geom_point(size = 2, colour = "grey30") + 
@@ -173,6 +220,8 @@ ggplot(sim1, aes(x, y)) +
 ```
 
 You could imagine iteratively making the grid finer and finer until you narrowed in on the best model. But there's a better way to tackle that problem: a numerical minimisation tool called Newton-Raphson search. The intuition of Newton-Raphson is pretty simple: you pick a starting point and look around for the steepest slope. You then ski down that slope a little way, and then repeat again and again, until you can't go any lower. In R, we can do that with `optim()`:
+
+可以设想不断细化网格来最终找出最佳模型。但还有一个更好的方法可以解决这个问题， 这种方法是名为“牛顿—拉夫逊搜索”的数值最小化工具。牛顿—拉夫逊方法的直观解释非常简单：先选择一个起点，环顾四周找到最陡的斜坡，并沿着这个斜坡向下滑行一小段， 然后不断重复这个过程，直到不能再下滑为止。在R 中，我们可以使用 optim() 函数来完成这个任务：
 
 ```{r}
 best <- optim(c(0, 0), measure_distance, data = sim1)
@@ -185,7 +234,11 @@ ggplot(sim1, aes(x, y)) +
 
 Don't worry too much about the details of how `optim()` works. It's the intuition that's important here. If you have a function that defines the distance between a model and a dataset, an algorithm that can minimise that distance by modifying the parameters of the model, you can find the best model. The neat thing about this approach is that it will work for any family of models that you can write an equation for. 
 
+无须过多担心 optim() 函数的工作细节。现在重要的是要建立直觉。如果具有定义模型与数据集间距离的函数，以及可以通过修改模型参数使距离最小化的算法，那么我们就可以找出最佳模型。以上这种方法的好处是，只要能够写出方程来表示模型族，那么你就可以使用这种方法。
+
 There's one more approach that we can use for this model, because it's a special case of a broader family: linear models. A linear model has the general form `y = a_1 + a_2 * x_1 + a_3 * x_2 + ... + a_n * x_(n - 1)`. So this simple model is equivalent to a general linear model where n is 2 and `x_1` is `x`. R has a tool specifically designed for fitting linear models called `lm()`. `lm()` has a special way to specify the model family: formulas. Formulas look like `y ~ x`, which `lm()` will translate to a function like `y = a_1 + a_2 * x`. We can fit the model and look at the output:
+
+对于这个模型，我们还可以使用另一种方法，因为它是一个更广泛模型族的一种特殊情况，即是线性模型。线性模型的一般形式是 y = a_1 + a_2 * x_1 + a_3 * x_2 + … + a_ n * x_(n - 1)。因此，这个简单模型就等价于 n 为 2 且 x_1 为 x 的一般线性模型。R 中有专门用于拟合线性模型的工具，即 lm() 函数。lm() 用一种特殊方法来表示模型族：公式。公式的形式为 y ~ x，lm() 会将这种形式的公式转换成类似 y = a_1 + a_2 * x 的函数。我们使用 lm() 来拟合这个模型，并检查输出：
 
 ```{r}
 sim1_mod <- lm(y ~ x, data = sim1)
@@ -194,12 +247,16 @@ coef(sim1_mod)
 
 These are exactly the same values we got with `optim()`! Behind the scenes `lm()` doesn't use `optim()` but instead takes advantage of the mathematical structure of linear models. Using some connections between geometry, calculus, and linear algebra, `lm()` actually finds the closest model in a single step, using a sophisticated algorithm. This approach is both faster, and guarantees that there is a global minimum.
 
-### Exercises
+这与我们使用 optim() 函数得到的结果完全一致。lm() 函数使用的并不是 optim()，而是利用了线性模型的数学结构。实际上，lm() 使用了一种非常复杂的算法，通过几何学、微积分和线性代数间的一些关系，它只需要一个步骤就可以找出最近似的模型。这种方法的速度非常快，而且一定能找到全局最小值。
+
+### Exercises | 练习
 
 1.  One downside of the linear model is that it is sensitive to unusual values
     because the distance incorporates a squared term. Fit a linear model to 
     the simulated data below, and visualise the results. Rerun a few times to
     generate different simulated datasets. What do you notice about the model? 
+    
+    线性模型的一个缺点是，对异常值非常敏感，因为距离是用平方项表示的。使用以下模拟数据拟合一个线性模型，并对结果进行可视化表示。重新运行几次代码，以生成不同的模拟数据集。对于这个模型，你有什么发现？
     
     ```{r}
     sim1a <- tibble(
@@ -212,6 +269,8 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     measure. For example, instead of root-mean-squared distance, you could use
     mean-absolute distance:
     
+    要想使得线性模型更加健壮，其中一种方法是使用另一种距离度量方式。例如，除了使用均方根误差，你还可以使用平均绝对值距离：
+    
     ```{r}
     measure_distance <- function(mod, data) {
       diff <- data$y - model1(mod, data)
@@ -221,10 +280,14 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     
     Use `optim()` to fit this model to the simulated data above and compare it 
     to the linear model.
+    
+    使用 optim() 函数与前面的模拟数据拟合模型，并与前面的线性模型对比一下。
 
 1.  One challenge with performing numerical optimisation is that it's only
     guaranteed to find one local optimum. What's the problem with optimising
     a three parameter model like this?
+    
+    使用数值最优化算法的一个问题是，只能保证得到局部最优值。对于以下的 3 参数模型，执行最优化时会有什么问题？
     
     ```{r}
     model1 <- function(a, data) {
@@ -232,15 +295,21 @@ These are exactly the same values we got with `optim()`! Behind the scenes `lm()
     }
     ```
 
-## Visualising models
+## Visualising models | 模型可视化
 
 For simple models, like the one above, you can figure out what pattern the model captures by carefully studying the model family and the fitted coefficients. And if you ever take a statistics course on modelling, you're likely to spend a lot of time doing just that. Here, however, we're going to take a different tack. We're going to focus on understanding a model by looking at its predictions. This has a big advantage: every type of predictive model makes predictions (otherwise what use would it be?) so we can use the same set of techniques to understand any type of predictive model.
 
+对于简单的模型，比如上一节中的模型，我们可以通过仔细检查模型族和拟合系数来找出模型捕获的模式。如果学过关于建模的统计学知识，那么你就可以花费大量时间来做这件事。但这里我们准备介绍另外一种方法，即重点通过预测来理解模型。这种方法的一大优点是，每种类型的预测模型都要进行预测（否则还有什么用处？），因此我们可以使用同样的技术来理解任何类型的预测模型。
+
 It's also useful to see what the model doesn't capture, the so-called residuals which are left after subtracting the predictions from the data. Residuals are powerful because they allow us to use models to remove striking patterns so we can study the subtler trends that remain.
 
-### Predictions
+找出模型未捕获的信息也是非常有用的，即所谓的残差，它是数据去除预测值后剩余的部分。残差是非常强大的，因为它允许我们使用模型去除数据中显著的模式，以便对剩余的微妙趋势进行研究。
+
+### Predictions | 预测
 
 To visualise the predictions from a model, we start by generating an evenly spaced grid of values that covers the region where our data lies. The easiest way to do that is to use `modelr::data_grid()`. Its first argument is a data frame, and for each subsequent argument it finds the unique variables and then generates all combinations:
+
+要想对模型的预测进行可视化表示，首先要生成一个分布均匀的数值网格，以覆盖数据所在区域。完成这个任务最简单的方式就是使用 modelr::data_grid() 函数，其第一个参数是一个数据框，对于随后的每个参数，它都会找出其中的唯一值，然后生成所有组合：
 
 ```{r}
 grid <- sim1 %>% 
@@ -250,7 +319,11 @@ grid
 
 (This will get more interesting when we start to add more variables to our model.)
 
+（如果向模型中添加更多变量，那么结果会更有趣。）
+
 Next we add predictions. We'll use `modelr::add_predictions()` which takes a data frame and a model. It adds the predictions from the model to a new column in the data frame:
+
+接着添加预测值。我们使用的是 modelr::add_predictions() 函数，其参数是一个数据框和一个模型。这个函数可以将模型的预测值作为一个新列添加到数据框中：
 
 ```{r}
 grid <- grid %>% 
@@ -260,7 +333,11 @@ grid
 
 (You can also use this function to add predictions to your original dataset.)
 
+（你也可以使用这个函数将预测值添加到原始数据集中。）
+
 Next, we plot the predictions. You might wonder about all this extra work compared to just using `geom_abline()`. But the advantage of this approach is that it will work with _any_ model in R, from the simplest to the most complex. You're only limited by your visualisation skills. For more ideas about how to visualise more complex model types, you might try <http://vita.had.co.nz/papers/model-vis.html>.
+
+下一步是绘制预测值。你可能很奇怪，为什么我们要做这些额外的工作，而不是直接使用geom_abline() 函数。因为这种方法适合 R 中的所有模型，不管是最简单的还是最复杂的， 它只受可视化能力的限制。如果想要对更加复杂的模型进行可视化，可以参考 http://vita. had.co.nz/papers/model-vis.html 来获取更多相关信息。
 
 ```{r}
 ggplot(sim1, aes(x)) +
@@ -268,11 +345,15 @@ ggplot(sim1, aes(x)) +
   geom_line(aes(y = pred), data = grid, colour = "red", size = 1)
 ```
 
-### Residuals
+### Residuals | 残差
 
 The flip-side of predictions are __residuals__. The predictions tells you the pattern that the model has captured, and the residuals tell you what the model has missed. The residuals are just the distances between the observed and predicted values that we computed above. 
 
+与预测值相对的是残差。预测值可以告诉我们模型捕获的模式，残差则表示模型漏掉的部分。残差就是我们前面计算过的观测值与预测值间的距离。
+
 We add residuals to the data with `add_residuals()`, which works much like `add_predictions()`. Note, however, that we use the original dataset, not a manufactured grid. This is because to compute residuals we need actual y values.
+
+我们可以使用 add_residuals() 函数将残差添加到数据中，这个函数与 add_predictions() 非常相似。但注意，我们使用的是原始数据，不是生成的网格，因为计算残差需要使用实际的 y 值：
 
 ```{r}
 sim1 <- sim1 %>% 
@@ -282,6 +363,8 @@ sim1
 
 There are a few different ways to understand what the residuals tell us about the model. One way is to simply draw a frequency polygon to help us understand the spread of the residuals:
 
+对于残差可以反映出模型的哪些信息，有几种不同的理解方法。其中一种方法是简单地绘制频率多边形图，以帮助我们理解残差的分布：
+
 ```{r}
 ggplot(sim1, aes(resid)) + 
   geom_freqpoly(binwidth = 0.5)
@@ -289,7 +372,11 @@ ggplot(sim1, aes(resid)) +
 
 This helps you calibrate the quality of the model: how far away are the predictions from the observed values?  Note that the average of the residual will always be 0.
 
+这种方法可以反映出模型的质量：模型预测值与实际观测值的差别有多大？注意，残差的平均值总是为 0。
+
 You'll often want to recreate plots using the residuals instead of the original predictor. You'll see a lot of that in the next chapter.
+
+我们经常会使用残差代替原来的预测变量来重新绘图。你将在下一章中看到大量这种操作：
 
 ```{r}
 ggplot(sim1, aes(x, resid)) + 
@@ -299,7 +386,9 @@ ggplot(sim1, aes(x, resid)) +
 
 This looks like random noise, suggesting that our model has done a good job of capturing the patterns in the dataset.
 
-### Exercises
+由上图可知，残差应该是随机的噪声，这表明我们的模型非常好地捕获了数据集中的模式。
+
+### Exercises | 练习
 
 1.  Instead of using `lm()` to fit a straight line, you can use `loess()`
     to fit a smooth curve. Repeat the process of model fitting, 
@@ -307,21 +396,33 @@ This looks like random noise, suggesting that our model has done a good job of c
     `loess()` instead of `lm()`. How does the result compare to 
     `geom_smooth()`?
     
+    除了使用 lm() 函数拟合一条直线，你还可以使用 loess() 函数来拟合一条平滑曲线。使用 loess() 代替 lm() 对 sim1 数据集重复模型拟合、网格生成、预测和可视化的过程， 并将结果与 geom_smooth() 函数进行比较。
+    
 1.  `add_predictions()` is paired with `gather_predictions()` and 
     `spread_predictions()`. How do these three functions differ?
+    
+    add_predictions() 函数还伴有 2 个函数：gather_predictions() 和 spread_predicitons()。这 3 个函数有什么不同？
     
 1.  What does `geom_ref_line()` do? What package does it come from?
     Why is displaying a reference line in plots showing residuals
     useful and important?
     
+    geom_ref_line() 函数的功能是什么？它来自于哪个 R 包？在显示残差的图形中显示一条参考线是非常重要和有用的，为什么这么说呢？
+    
 1.  Why might you want to look at a frequency polygon of absolute residuals?
     What are the pros and cons compared to looking at the raw residuals?
+    
+    为什么需要检查残差绝对值的频率多边形图？与检查残差本身相比，这种方式有什么优缺点呢？
 
-## Formulas and model families
+## Formulas and model families | 公式和模型族
 
 You've seen formulas before when using `facet_wrap()` and `facet_grid()`. In R, formulas provide a general way of getting "special behaviour". Rather than evaluating the values of the variables right away, they capture them so they can be interpreted by the function.
 
+在前面使用 facet_wrap() 和 facet_grid() 函数时，我们已经见过了公式。在 R 中，公式是表示“特殊行为”的一种通用方式。公式不对变量立刻进行求值，只是将变量表示为函数能够理解的形式。
+
 The majority of modelling functions in R use a standard conversion from formulas to functions. You've seen one simple conversion already: `y ~ x` is translated to `y = a_1 + a_2 * x`.  If you want to see what R actually does, you can use the `model_matrix()` function. It takes a data frame and a formula and returns a tibble that defines the model equation: each column in the output is associated with one coefficient in the model, the function is always `y = a_1 * out1 + a_2 * out_2`. For the simplest case of `y ~ x1` this shows us something interesting:
+
+R 中的绝大多数建模函数都使用一种标准转换将公式转换为表示模型族的方程。我们已经见过了一个简单的转换：y ~ x 转换为 y = a_1 + a_2 * x。如果想看 R 到底进行了什么转换，可以使用 model_matrix() 函数。这个函数接受一个数据框和一个公式，并返回一个定义了模型方程的 tibble，其中每一列都关联到方程的一个系数，方程的形式总是类似于y = a_1 * out1 + a_2 * out_2。对于最简单的情况，y ~ x1，这个函数会返回以下有趣的结果：
 
 ```{r}
 df <- tribble(
@@ -334,11 +435,15 @@ model_matrix(df, y ~ x1)
 
 The way that R adds the intercept to the model is just by having a column that is full of ones.  By default, R will always add this column. If you don't want, you need to explicitly drop it with `-1`:
 
+R 向模型加入截距项的方法是，加入一个值全是 1 的列。默认情况下，R 总是加入这一列。如果不想要截距项，那么你必须使用 -1 来明确丢弃它：
+
 ```{r}
 model_matrix(df, y ~ x1 - 1)
 ```
 
 The model matrix grows in an unsurprising way when you add more variables to the the model:
+
+如果向模型中添加更多变量，那么模型矩阵当然也会随之增长：
 
 ```{r}
 model_matrix(df, y ~ x1 + x2)
@@ -346,11 +451,17 @@ model_matrix(df, y ~ x1 + x2)
 
 This formula notation is sometimes called "Wilkinson-Rogers notation", and was initially described in _Symbolic Description of Factorial Models for Analysis of Variance_, by G. N. Wilkinson and C. E. Rogers <https://www.jstor.org/stable/2346786>. It's worth digging up and reading the original paper if you'd like to understand the full details of the modelling algebra.
 
+这种公式表示法有时也称为“Wilkinson-Rogers 表示法”，由 G. N. Wilkinson 和 C. E. Rogers在其论文“Symbolic Description of Factorial Models for Analysis of Variance”中首次提出。如果想要了解这种模型表示法的全部细节，可以仔细研究一下这篇论文的原文。
+
 The following sections expand on how this formula notation works for categorical variables, interactions, and transformation.
 
-### Categorical variables
+以下各节展开介绍了如何使用这种公式表示法来表示分类变量、交互项以及变量转换。
+
+### Categorical variables | 分类变量
 
 Generating a function from a formula is straight forward when the predictor is continuous, but things get a bit more complicated when the predictor is categorical. Imagine you have a formula like `y ~ sex`, where sex could either be male or female. It doesn't make sense to convert that to a formula like `y = x_0 + x_1 * sex` because `sex` isn't a number - you can't multiply it! Instead what R does is convert it to `y = x_0 + x_1 * sex_male` where `sex_male` is one if `sex` is male and zero otherwise:
+
+如果预测变量是连续的，那么从公式转换为方程是很简单的；但当预测变量是分类变量时，事情就有点复杂了。假设存在公式 y ~ sex，其中 sex 的值要么是男性要么是女性， 那么将其转换成 y = x_0 + x_1 * sex 就没有意义了，因为 sex 不是数值，我们不能对它使用乘法。相反，R 的做法是将其转换为y = x_0 + x_1 * sex_male，如果 sex 为男性， 那么 sex_male 的值就是 1，否则其值就是 0：
 
 ```{r}
 df <- tribble(
@@ -364,7 +475,11 @@ model_matrix(df, response ~ sex)
 
 You might wonder why R also doesn't create a `sexfemale` column. The problem is that would create a column that is perfectly predictable based on the other columns (i.e. `sexfemale = 1 - sexmale`). Unfortunately the exact details of why this is a problem is beyond the scope of this book, but basically it creates a model family that is too flexible, and will have infinitely many models that are equally close to the data.
 
+你可能想知道，为什么 R 没有同时建立一个 sexfemale 列。问题是，这样创建出来的列是可以基于其他列完美预测的（即 sexfemale = 1 - sexmale）。可惜的是，这构成问题的具体原因已经超出了本书的讨论范围，大致就是这样做会建立一个过于灵活的模型族，从而生成对数据拟合效果相同的无数个模型。
+
 Fortunately, however, if you focus on visualising predictions you don't need to worry about the exact parameterisation. Let's look at some data and models to make that concrete. Here's the `sim2` dataset from modelr:
+
+好在如果重点关注对预测值的可视化，那么就无须担心具体的参数值。我们使用数据和模型进行具体的说明。以下是 modelr 中的 sim2 数据集：
 
 ```{r}
 ggplot(sim2) + 
@@ -372,6 +487,8 @@ ggplot(sim2) +
 ```
 
 We can fit a model to it, and generate predictions:
+
+我们可以拟合一个模型，并生成预测：
 
 ```{r}
 mod2 <- lm(y ~ x, data = sim2)
@@ -384,6 +501,8 @@ grid
 
 Effectively, a model with a categorical `x` will predict the mean value for each category. (Why? Because the mean minimises the root-mean-squared distance.) That's easy to see if we overlay the predictions on top of the original data:
 
+实际上，带有分类变量 x 的模型会为每个分类预测出均值。（为什么？因为均值会使均方根距离最小化。）如果将预测值覆盖到原始数据上，就很容易看出这一点：
+
 ```{r}
 ggplot(sim2, aes(x)) + 
   geom_point(aes(y = y)) +
@@ -392,14 +511,18 @@ ggplot(sim2, aes(x)) +
 
 You can't make predictions about levels that you didn't observe. Sometimes you'll do this by accident so it's good to recognise this error message:
 
+不能对未观测到的水平进行预测。因为有时会不小心进行这种预测，所以我们应该看懂以下这条错误信息：
+
 ```{r, error = TRUE}
 tibble(x = "e") %>% 
   add_predictions(mod2)
 ```
 
-### Interactions (continuous and categorical)
+### Interactions (continuous and categorical) | 交互项（连续变量与分类变量）
 
 What happens when you combine a continuous and a categorical variable?  `sim3` contains a categorical predictor and a continuous predictor. We can visualise it with a simple plot:
+
+如果将一个连续变量与一个分类变量组合使用，会是什么情况？ sim3 数据集中包含了一个分类预测变量和一个连续预测变量，我们可以使用一张简单的图来表示它们：
 
 ```{r}
 ggplot(sim3, aes(x1, y)) + 
@@ -407,6 +530,7 @@ ggplot(sim3, aes(x1, y)) +
 ```
 
 There are two possible models you could fit to this data:
+你可以使用两种模型来拟合这份数据：
 
 ```{r}
 mod1 <- lm(y ~ x1 + x2, data = sim3)
@@ -415,18 +539,27 @@ mod2 <- lm(y ~ x1 * x2, data = sim3)
 
 When you add variables with `+`, the model will estimate each effect independent of all the others. It's possible to fit the so-called interaction by using `*`. For example, `y ~ x1 * x2` is translated to `y = a_0 + a_1 * x1 + a_2 * x2 + a_12 * x1 * x2`. Note that whenever you use `*`, both the interaction and the individual components are included in the model.
 
+如果使用 + 添加变量，那么模型会独立地估计每个变量的效果，不考虑其他变量。如果使用`*`，那么拟合的就是所谓的交互项。例如，y ~ x1 * x2 会转换为 y = a_0 + a_1 * x1 + a_2 * x2 + a_12 * x1 * x2。注意，只要使用了 *，交互项及其各个组成部分就都要包括在模型中。
+
 To visualise these models we need two new tricks:
+
+要想对这样的模型进行可视化，需要两种新技巧。
 
 1.  We have two predictors, so we need to give `data_grid()` both variables. 
     It finds all the unique values of `x1` and `x2` and then generates all
     combinations. 
+    
+    •	因为有两个预测变量，所以我们需要将这两个变量都传给 data_grid() 函数。这个函数会找出 x1 和 x2 中的所有唯一值，并生成所有组合。
    
 1.  To generate predictions from both models simultaneously, we can use 
     `gather_predictions()` which adds each prediction as a row. The
     complement of `gather_predictions()` is `spread_predictions()` which adds 
     each prediction to a new column.
     
+    •	要想为以上的两个模型同时生成预测，可以使用 gather_predictions() 函数，它可以将每个预测作为一行加入数据框。与 gather_predictions() 互补的函数是 spread_ predictions()，后者可以将每个预测作为一列加入数据框。
+    
 Together this gives us:
+综上所述，可以得到：
 
 ```{r}
 grid <- sim3 %>% 
@@ -437,6 +570,8 @@ grid
 
 We can visualise the results for both models on one plot using facetting:
 
+我们可以使用分面技术将两个模型的可视化结果放在一张图中：
+
 ```{r}
 ggplot(sim3, aes(x1, y, colour = x2)) + 
   geom_point() + 
@@ -446,7 +581,11 @@ ggplot(sim3, aes(x1, y, colour = x2)) +
 
 Note that the model that uses `+` has the same slope for each line, but different intercepts. The model that uses `*` has a different slope and intercept for each line.
 
+注意，在使用 + 的模型中，每条直线都具有同样的斜率，但截距不同。在使用 * 的模型中，每条直线的斜率和截距都不相同。
+
 Which model is better for this data? We can take look at the residuals. Here I've facetted by both model and `x2` because it makes it easier to see the pattern within each group.
+
+对于这份数据来说，哪种模型更好呢？我们可以检查一下残差。这里我们使用了模型和 x2 变量来进行分面，因为这样更容易看到每个组中的模式：
 
 ```{r}
 sim3 <- sim3 %>% 
@@ -459,9 +598,13 @@ ggplot(sim3, aes(x1, resid, colour = x2)) +
 
 There is little obvious pattern in the residuals for `mod2`. The residuals for `mod1` show that the model has clearly missed some pattern in `b`, and less so, but still present is pattern in `c`, and `d`. You might wonder if there's a precise way to tell which of `mod1` or `mod2` is better. There is, but it requires a lot of mathematical background, and we don't really care. Here, we're interested in a qualitative assessment of whether or not the model has captured the pattern that we're interested in. 
 
-### Interactions (two continuous)
+mod2 的残差中几乎看不到明显的模式。mod1 的残差则表明这个模型在 b 分类中明显漏掉了某种模式，而在 c 和 d 分类中，虽然不明显，但还是存在某种模式的。你应该很想知道， 是否有精确的方法可以确定 mod1 还是 mod2 更好。确实有这种方法，但需要强大的数学背景，而且我们现在还不用关心这个问题。现在我们应该关心的是定性评估模型能否捕获我们感兴趣的模式的方法。
+
+### Interactions (two continuous) | 交互项（两个连续变量）
 
 Let's take a look at the equivalent model for two continuous variables. Initially things proceed almost identically to the previous example:
+
+以下模型和上一节中的基本相同，只是包括了两个连续变量。前几个步骤几乎和前面的示例完全一样：
 
 ```{r}
 mod1 <- lm(y ~ x1 + x2, data = sim4)
@@ -478,9 +621,13 @@ grid
 
 Note my use of `seq_range()` inside `data_grid()`. Instead of using every unique value of `x`, I'm going to use a regularly spaced grid of five values between the minimum and maximum numbers. It's probably not super important here, but it's a useful technique in general. There are two other useful arguments to `seq_range()`:
 
+注意，我们在 data_grid() 函数中使用了 seq_range() 函数。这一次我们不使用 x 变量的所有唯一值，而是使用 x 变量最小值和最大值之间间隔相等的 5 个值来生成网格。虽然这种技术不是特别重要，但通常还是有用的。seq_range() 还有其他 3 个有用的参数。
+
 *  `pretty = TRUE` will generate a "pretty" sequence, i.e. something that looks
     nice to the human eye. This is useful if you want to produce tables of 
     output:
+    
+    •	pretty = TRUE 会生成一个“漂亮的”序列，也就是说，让我们看起来比较舒服的序列。如果想要生成输出表格的话，这个参数是很有用的：
     
     ```{r}
     seq_range(c(0.0123, 0.923423), n = 5)
@@ -490,6 +637,8 @@ Note my use of `seq_range()` inside `data_grid()`. Instead of using every unique
 *   `trim = 0.1` will trim off 10% of the tail values. This is useful if the 
     variables have a long tailed distribution and you want to focus on generating
     values near the center:
+    
+    •	trim = 0.1 会截断 10% 的尾部值。如果变量具有长尾分布，而你希望尽量生成中心附近的值，那么就可以使用这个参数：
     
     ```{r}
     x1 <- rcauchy(100)
@@ -502,6 +651,8 @@ Note my use of `seq_range()` inside `data_grid()`. Instead of using every unique
 *   `expand = 0.1` is in some sense the opposite of `trim()` it expands the 
     range by 10%.
     
+    • expand = 0.1 从某种程度上来说是 trim() 的反函数，它可以将取值范围扩大 10%：
+    
     ```{r}
     x2 <- c(0, 1)
     seq_range(x2, n = 5)
@@ -512,6 +663,8 @@ Note my use of `seq_range()` inside `data_grid()`. Instead of using every unique
 
 Next let's try and visualise that model. We have two continuous predictors, so you can imagine the model like a 3d surface. We could display that using `geom_tile()`:
 
+接下来我们试着对模型进行可视化。因为有两个连续型预测变量，所以我们可以将模型想象为一个三维表面。可以使用 geom_tile() 函数将其显示出来：
+
 ```{r}
 ggplot(grid, aes(x1, x2)) + 
   geom_tile(aes(fill = pred)) + 
@@ -519,6 +672,8 @@ ggplot(grid, aes(x1, x2)) +
 ```
 
 That doesn't suggest that the models are very different! But that's partly an illusion: our eyes and brains are not very good at accurately comparing shades of colour. Instead of looking at the surface from the top, we could look at it from either side, showing multiple slices:
+
+观察这两张图，我们看不出这两个模型有什么明显区别。但这是一种错觉，因为我们的眼睛和大脑不擅长精确分辨颜色的深浅。我们不能从上面查看这个表面，而应该分别从 x1 和 x2 的角度来查看，并表示出多个切面：
 
 ```{r, asp = 1/2}
 ggplot(grid, aes(x1, pred, colour = x2, group = x2)) + 
@@ -531,15 +686,25 @@ ggplot(grid, aes(x2, pred, colour = x1, group = x1)) +
 
 This shows you that interaction between two continuous variables works basically the same way as for a categorical and continuous variable. An interaction says that there's not a fixed offset: you need to consider both values of `x1` and `x2` simultaneously in order to predict `y`.
 
+这说明两个连续型变量的交互项的作用方式与一个分类变量和一个连续变量的交互项基本相同。交互项说明了两个变量是相互影响的，如果要预测 y 值，那么必须同时考虑 x1 的值和 x2 的值。
+
 You can see that even with just two continuous variables, coming up with good visualisations are hard. But that's reasonable: you shouldn't expect it will be easy to understand how three or more variables simultaneously interact! But again, we're saved a little because we're using models for exploration, and you can gradually build up your model over time. The model doesn't have to be perfect, it just has to help you reveal a little more about your data.
+
+由上可知，即使只有两个连续型变量，要想得到良好的可视化结果也是非常困难的。但这也是合乎情理的，对于 3 个或更多变量同时进行的交互作用，我们更不能指望可以轻松理解了。但再次让人聊以自慰的是，我们现在只是使用模型进行数据探索，以后还可以逐步完善这个模型。现在的模型不一定要很完美，只要能帮助我们更好地认识数据即可。
 
 I spent some time looking at the residuals to see if I could figure if `mod2` did better than `mod1`. I think it does, but it's pretty subtle. You'll have a chance to work on it in the exercises.
 
-### Transformations
+我们用了一点时间来检查残差，看看能否证明 mod2 的效果比 mod1 更好。结果是 mod2 的效果确实好一点，但真的只是一点。在后面的练习中，我们还会继续研究这个问题。
+
+### Transformations | 变量转换
 
 You can also perform transformations inside the model formula. For example, `log(y) ~ sqrt(x1) + x2` is transformed to `log(y) = a_1 + a_2 * sqrt(x1) + a_3 * x2`. If your transformation involves `+`, `*`, `^`, or `-`, you'll need to wrap it in `I()` so R doesn't treat it like part of the model specification. For example, `y ~ x + I(x ^ 2)` is translated to `y = a_1 + a_2 * x + a_3 * x^2`. If you forget the `I()` and specify `y ~ x ^ 2 + x`, R will compute `y ~ x * x + x`. `x * x` means the interaction of `x` with itself, which is the same as `x`. R automatically drops redundant variables so `x + x` become `x`, meaning that `y ~ x ^ 2 + x` specifies the function `y = a_1 + a_2 * x`. That's probably not what you intended!
 
+还可以在模型公式中进行变量转换。例如，log(y) ~ sqrt(x1) + x2 可以转换为 log(y) = a_1 + a_2 * sqrt(x1) + a_3 * x2。如果想要使用 +、`*`、^ 或 - 进行变量转换，那么就应该使用 I() 对其进行包装，以便 R 在处理时不将它当作模型定义的一部分。例如，y ~ x + I(x ^ 2) 会转换为 y = a_1 + a_2 * x + a_3 * x^2。如果忘记使用 I()，将公式写成 y ~ x ^ 2 + x，那么 R 就会计算 y ~ x * x + x。x * x 表示 x 和自己的交互项，实际上就是x。R 会自动丢弃冗余变量，因此 x + x 会变成 x，这样 y ~ x ^ 2 + x 定义的方程就是 y = a_1 + a_2 * x，这可不是你想要的！
+
 Again, if you get confused about what your model is doing, you can always use `model_matrix()` to see exactly what equation `lm()` is fitting:
+
+再次强调，如果搞不清模型在做什么，可以使用 model_matrix() 函数查看 lm() 到底在拟合哪个方程：
 
 ```{r}
 df <- tribble(
@@ -554,11 +719,15 @@ model_matrix(df, y ~ I(x^2) + x)
 
 Transformations are useful because you can use them to approximate non-linear functions. If you've taken a calculus class, you may have heard of Taylor's theorem which says you can approximate any smooth function with an infinite sum of polynomials. That means you can use a polynomial function to get arbitrarily close to a smooth function by fitting an equation like `y = a_1 + a_2 * x + a_3 * x^2 + a_4 * x ^ 3`. Typing that sequence by hand is tedious, so R provides a helper function: `poly()`:
 
+变量转换非常有用，因为你可以使用它们来近似表示非线性函数。如果学过微积分，那么你就应该知道泰勒定理，它表明任何平滑函数都可以近似为无限个多项式之和。这说明通过拟合y = a_1 + a_2 * x + a_3 * x^2 + a_4 * x^3 这样的方程，我们可以使用线性函数任意逼近一个平滑函数。因为手动输入这个方程太无聊了，所以 R 提供了一个辅助函数 poly()：
+
 ```{r}
 model_matrix(df, y ~ poly(x, 2))
 ```
 
 However there's one major problem with using `poly()`: outside the range of the data, polynomials rapidly shoot off to positive or negative infinity. One safer alternative is to use the natural spline, `splines::ns()`.
+
+但使用 poly() 函数时有一个很大的问题：多项式的值会超出数据范围，很容易接近正无穷或负无穷。更安全的一种方式是使用自然样条法 splines::ns()：
 
 ```{r}
 library(splines)
@@ -566,6 +735,8 @@ model_matrix(df, y ~ ns(x, 2))
 ```
 
 Let's see what that looks like when we try and approximate a non-linear function:
+
+我们看一下近似非线性函数时的情况：
 
 ```{r}
 sim5 <- tibble(
@@ -578,6 +749,7 @@ ggplot(sim5, aes(x, y)) +
 ```
 
 I'm going to fit five models to this data.
+我们使用这份数据来拟合 5 个模型：
 
 ```{r}
 mod1 <- lm(y ~ ns(x, 1), data = sim5)
@@ -598,18 +770,26 @@ ggplot(sim5, aes(x, y)) +
 
 Notice that the extrapolation outside the range of the data is clearly bad. This is the downside to approximating a function with a polynomial. But this is a very real problem with every model: the model can never tell you if the behaviour is true when you start extrapolating outside the range of the data that you have seen. You must rely on theory and science.
 
-### Exercises
+注意，当使用模型在数据范围外进行推断时，效果明显非常差。这是使用多项式近似函数的一个缺点。但这是所有模型都具有的一个实际问题：当对未知数据进行外推时，模型无法确保结果的真实性。你必须依靠相关的科学理论。
+
+### Exercises | 练习
 
 1.  What happens if you repeat the analysis of `sim2` using a model without
     an intercept. What happens to the model equation? What happens to the
     predictions?
     
+    如果使用没有截距的模型对 sim2 数据集再次进行分析，会是什么情况？模型方程会发生什么变化？预测值呢？
+    
 1.  Use `model_matrix()` to explore the equations generated for the models
     I fit to `sim3` and `sim4`. Why is `*` a good shorthand for interaction?
+    
+    (1)	使用 model_matrix() 研究一下我们用 sim3 和 sim4 拟合模型时生成的方程。为什么 * 是交互项的一种非常好的简单表示？
 
 1.  Using the basic principles, convert the formulas in the following two
     models into functions. (Hint: start by converting the categorical variable
     into 0-1 variables.)
+    
+    使用前文中的基本规则，将以下两个模型中的公式转换为方程。（提示：先将分类变量转换为 0~1 变量。）
     
     ```{r, eval = FALSE}
     mod1 <- lm(y ~ x1 + x2, data = sim3)
@@ -619,10 +799,14 @@ Notice that the extrapolation outside the range of the data is clearly bad. This
 1.   For `sim4`,  which of `mod1` and `mod2` is better? I think `mod2` does a 
      slightly better job at removing patterns, but it's pretty subtle. Can you 
      come up with a plot to support my claim? 
+     
+     对于 sim4 数据集，mod1 和 mod2 哪一个更好？我们认为 mod2 在消除模式方面做得稍好一些，但好得很有限。你能否用一张图来支持该结论？
 
-## Missing values
+## Missing values | 缺失值
 
 Missing values obviously can not convey any information about the relationship between the variables, so modelling functions will drop any rows that contain missing values. R's default behaviour is to silently drop them, but `options(na.action = na.warn)` (run in the prerequisites), makes sure you get a warning.
+
+对于变量间的关系，缺失值显然不能传达出任何信息，因此建模函数会丢弃包含缺失值的所有行。默认情况下，R 会不声不响地丢弃这种数据，但是 options(na.action = na.warn) （我们在准备工作中运行过这行代码）可以确保我们收到一条警告信息：
 
 ```{r}
 df <- tribble(
@@ -638,20 +822,24 @@ mod <- lm(y ~ x, data = df)
 ```
 
 To suppress the warning, set `na.action = na.exclude`:
+要想阻止错误信息，可以设置 na.action = na.exclude：
 
 ```{r}
 mod <- lm(y ~ x, data = df, na.action = na.exclude)
 ```
 
 You can always see exactly how many observations were used with `nobs()`:
+通过 nobs() 函数，你可以知道模型实际使用了多少个观测：
 
 ```{r}
 nobs(mod)
 ```
 
-## Other model families
+## Other model families | 其他模型族
 
 This chapter has focussed exclusively on the class of linear models, which assume a relationship of the form `y = a_1 * x1 + a_2 * x2 + ... + a_n * xn`. Linear models additionally assume that the residuals have a normal distribution, which we haven't talked about. There are a large set of model classes that extend the linear model in various interesting ways. Some of them are:
+
+本章的重点完全在于线性模型，其假设变量间的关系是 y = a_1 * x1 + a_2 * x2 + … + a_n * xn 的形式。线性模型还假设残差服从正态分布，我们之前没有讲过这一点。很多模型族以各种有趣的方式扩展了线性模型，其中包括以下各种模型。
 
 * __Generalised linear models__, e.g. `stats::glm()`. Linear models assume that
   the response is continuous and the error has a normal distribution. 
@@ -659,21 +847,29 @@ This chapter has focussed exclusively on the class of linear models, which assum
   responses (e.g. binary data or counts). They work by defining a distance
   metric based on the statistical idea of likelihood.
   
+  •	广义线性模型，如 stats::glm() 函数。线性模型假设响应变量是连续的，并且误差服从正态分布。广义线性模型将线性模型扩展为可以包括非连续型的响应变量（如二值数据或计数）。它们基于似然这一统计思想，通过定义距离的度量来工作。
+  
 * __Generalised additive models__, e.g. `mgcv::gam()`, extend generalised
   linear models to incorporate arbitrary smooth functions. That means you can
   write a formula like `y ~ s(x)` which becomes an equation like 
   `y = f(x)` and let `gam()` estimate what that function is (subject to some
   smoothness constraints to make the problem tractable).
   
+  •	广义可加模型，如 mgcv::gam() 函数。该模型可以扩展广义线性模型，使其包含任意的平滑函数。这意味着，你可以写出 y ~ s(x) 这样的公式，它可以转化为 y = f(x) 这样的方程，并使用 gam() 函数估计出方程的形式（由于某些平滑性条件的限制，这个问题还是比较容易解决的）。
+  
 * __Penalised linear models__, e.g. `glmnet::glmnet()`, add a penalty term to
   the distance that penalises complex models (as defined by the distance 
   between the parameter vector and the origin). This tends to make
   models that generalise better to new datasets from the same population.
+  
+  •	带有惩罚项的线性模型，如 glmnet::glmnet() 函数。该模型向距离添加一个惩罚项，以惩罚复杂的模型（使用参数向量和原点间的距离来定义）。在扩展到来自同一总体的新数据集时，这种方法生成的模型更容易取得良好的效果。
 
 * __Robust linear models__, e.g. `MASS::rlm()`, tweak the distance to downweight 
   points that are very far away. This makes them less sensitive to the presence
   of outliers, at the cost of being not quite as good when there are no 
   outliers.
+  
+  •	健壮线性模型，如 MASS:rlm()。该模型对过远的距离进行调整，以降低远距离的权重。这样一来，模型对异常值就不会太敏感，但代价是当没有异常值时，效果不是特别好。
   
 * __Trees__, e.g. `rpart::rpart()`, attack the problem in a completely different
   way than linear models. They fit a piece-wise constant model, splitting the
@@ -681,5 +877,9 @@ This chapter has focussed exclusively on the class of linear models, which assum
   effective by themselves, but they are very powerful when used in aggregate
   by models like __random forests__ (e.g. `randomForest::randomForest()`) or 
   __gradient boosting machines__ (e.g. `xgboost::xgboost`.)
+  
+  •	树模型，如 rpart::rpart()。该模型使用与线性模型完全不同的方法来解决问题。树模型拟合一个分段常数模型，将数据逐渐划分为越来越小的多个部分。树模型本身的效率不是特别高，但如果使用随机森林（random forest，如randomForest::randomForest() 函数）或梯度提升机（gradient boosting machine，如 xgboost::xgboost() 函数）这样的模型将它们聚合起来使用时，其功能是非常强大的。
 
 These models all work similarly from a programming perspective. Once you've mastered linear models, you should find it easy to master the mechanics of these other model classes. Being a skilled modeller is a mixture of some good general principles and having a big toolbox of techniques. Now that you've learned some general tools and one useful class of models, you can go on and learn more classes from other sources.
+
+从编程的角度来看，这些模型的工作原理非常相似。一旦掌握了线性模型，你就会发现很容易掌握其他模型族的运行机制。要想成为一名熟练的建模专家，既要掌握通用原则，又要精通大量建模技术。现在你已经学习了一些通用工具和一种有用的模型，接下来就可以通过其他资源学习更多种类的模型了。

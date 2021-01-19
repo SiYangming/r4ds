@@ -1,29 +1,45 @@
-# Functions
+# Functions | 函数
 
-## Introduction 
+## Introduction | 简 介
 
 One of the best ways to improve your reach as a data scientist is to write functions. Functions allow you to automate common tasks in a more powerful and general way than copy-and-pasting. Writing a function has three big advantages over using copy-and-paste:
 
+要想成为一名优秀的数据科学家，编写函数绝对是最好的途径之一。与复制粘贴相比，函数可以通过更强大、更通用的方式来自动执行常用任务。相比于复制粘贴，函数具有以下 3 个主要优点。
+
 1.  You can give a function an evocative name that makes your code easier to 
     understand.
+    
+    •	你可以给函数起一个意味深长的名字，从而让代码更容易理解。
 
 1.  As requirements change, you only need to update code in one place, instead
     of many.
+    
+    •	如果需求发生了变化，只需要修改一处代码即可，无须修改多处。
 
 1.  You eliminate the chance of making incidental mistakes when you copy and 
     paste (i.e. updating a variable name in one place, but not in another).
+    
+    •	消除了复制粘贴时可能出现的无心之失（比如，修改了一处的变量名称，但却没有修改另一处）。
 
 Writing good functions is a lifetime journey. Even after using R for many years I still learn new techniques and better ways of approaching old problems. The goal of this chapter is not to teach you every esoteric detail of functions but to get you started with some pragmatic advice that you can apply immediately.
 
+编写优秀函数可以作为一个人的毕生事业。即使已经使用 R 多年，但我们还是对新技术和使用更好的方法解决老问题孜孜以求。本章的目的不是向你传授编写函数的神功秘籍，而是提供一些行之有效的实用建议，让你能够尽快开始编写自己的函数。
+
 As well as practical advice for writing functions, this chapter also gives you some suggestions for how to style your code. Good code style is like correct punctuation. Youcanmanagewithoutit, but it sure makes things easier to read! As with styles of punctuation, there are many possible variations. Here we present the style we use in our code, but the most important thing is to be consistent.
 
-### Prerequisites
+除了函数开发，本章还会对代码风格提出一些建议。良好的代码风格就像正确使用标点符号一样重要。不使用标点符号你也一样可以写文章，但使用标点符号肯定可以让文章更通俗易懂。代码风格种类繁多，各具特色。这里介绍的只是我们所使用的代码风格，最重要的是风格要保持一致。
+
+### Prerequisites | 准备工作
 
 The focus of this chapter is on writing functions in base R, so you won't need any extra packages.
 
-## When should you write a function?
+本章的焦点是在 R 基础包中编写函数，因此不需要任何额外的包。
+
+## When should you write a function? | 什么时候应该使用函数
 
 You should consider writing a function whenever you've copied and pasted a block of code more than twice (i.e. you now have three copies of the same code). For example, take a look at this code. What does it do?
+
+只要一段代码需要复制粘贴的次数超过两次（也就是说，同一段代码至少有 3 个副本），那么就应该考虑编写一个函数。例如，查看下面这段代码，它的功能是什么呢？
 
 ```{r}
 df <- tibble::tibble(
@@ -45,7 +61,11 @@ df$d <- (df$d - min(df$d, na.rm = TRUE)) /
 
 You might be able to puzzle out that this rescales each column to have a range from 0 to 1. But did you spot the mistake? I made an error when copying-and-pasting the code for `df$b`: I forgot to change an `a` to a `b`. Extracting repeated code out into a function is a good idea because it prevents you from making this type of mistake.
 
+你可能已经看出来了，这段代码的作用是将每列的值调整到 0 到 1 之间。但你能否发现其中的错误呢？在复制粘贴处理 df$b 的代码时，我们犯了一个错误：我们忘记将其中的一个a 改成 b 了。提取重复代码，将其转换为函数是一种非常好的做法，因为这样可以防止此类错误的发生。
+
 To write a function you need to first analyse the code. How many inputs does it have?
+
+要想编写一个函数，首先需要分析代码，比如，函数需要多少个输入？
 
 ```{r, eval = FALSE}
 (df$a - min(df$a, na.rm = TRUE)) /
@@ -54,6 +74,8 @@ To write a function you need to first analyse the code. How many inputs does it 
 
 This code only has one input: `df$a`. (If you're surprised that `TRUE` is not an input, you can explore why in the exercise below.) To make the inputs more clear, it's a good idea to rewrite the code using temporary variables with general names. Here this code only requires a single numeric vector, so I'll call it `x`:
 
+这段代码只有一个输入：df$a。（如果你很好奇为什么 TRUE 不是输入，那么可以在后面的练习中找到答案。）为了让输入更加清晰，应该使用具有通用名称的临时变量来重写代码。以上代码只需要一个数值向量，我们可以称其为 x：
+
 ```{r}
 x <- df$a
 (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
@@ -61,12 +83,16 @@ x <- df$a
 
 There is some duplication in this code. We're computing the range of the data three times, so it makes sense to do it in one step:
 
+这段代码中还有一些重复，我们计算了 3 次数据最大值和最小值，但这可以一步完成：
+
 ```{r}
 rng <- range(x, na.rm = TRUE)
 (x - rng[1]) / (rng[2] - rng[1])
 ```
 
 Pulling out intermediate calculations into named variables is a good practice because it makes it more clear what the code is doing. Now that I've simplified the code, and checked that it still works, I can turn it into a function:
+
+将中间计算结果保存为命名变量是一种非常好的做法，因为这样可以让代码的意义更加清楚。既然我们已经简化了代码，并检验了代码可以正常运行，接下来就可以将其转换为函数了：
 
 ```{r}
 rescale01 <- function(x) {
@@ -78,19 +104,31 @@ rescale01(c(0, 5, 10))
 
 There are three key steps to creating a new function:
 
+要想创建一个新函数，需要以下 3 个关键步骤。
+
 1.  You need to pick a __name__ for the function. Here I've used `rescale01` 
     because this function rescales a vector to lie between 0 and 1.
+    
+    为函数选择一个名称。在以上示例中，我们使用 rescale01 作为函数名称，因为这个函数的功能是将一个向量调整到 0 到 1 之间。
 
 1.  You list the inputs, or __arguments__, to the function inside `function`.
     Here we have just one argument. If we had more the call would look like
     `function(x, y, z)`.
+    
+    列举出 function 中所用的输入，即参数。这个示例中只有一个参数，如果有更多参数， 那么函数调用形式就类似于 function(x, y, z)。
 
 1.  You place the code you have developed in __body__ of the function, a 
     `{` block that immediately follows `function(...)`.
+    
+    将已经编写好的代码放在函数体中。在 function(...) 后面要紧跟一个用 {} 括起来的代码块。
 
 Note the overall process: I only made the function after I'd figured out how to make it work with a simple input. It's easier to start with working code and turn it into a function; it's harder to create a function and then try to make it work.
 
+注意以上创建函数的整体过程。确定函数如何使用简单输入来运行后，我们才开始编写函数。从工作代码开始，再将其转换为函数是相对容易的；先创建函数，再让其正确运行则是比较困难的。
+
 At this point it's a good idea to check your function with a few different inputs:
+
+此时我们应该使用其他输入来测试函数是否正确：
 
 ```{r}
 rescale01(c(-10, 0, 10))
@@ -99,7 +137,11 @@ rescale01(c(1, 2, 3, NA, 5))
 
 As you write more and more functions you'll eventually want to convert these informal, interactive tests into formal, automated tests. That process is called unit testing. Unfortunately, it's beyond the scope of this book, but you can learn about it in <http://r-pkgs.had.co.nz/tests.html>.
 
+编写了越来越多的函数后，你最终会想要将这种非正式的交互测试过程转化为一种正式的自动化测试过程。这种过程称为单元测试。遗憾的是，它超出了本书的讨论范围，如果想要了解更多关于单元测试的知识，可以访问 http://r-pkgs.had.co.nz/tests.html。
+
 We can simplify the original example now that we have a function:
+
+既然已经有了函数，那么我们就可以利用它来简化原来的示例了：
 
 ```{r}
 df$a <- rescale01(df$a)
@@ -110,7 +152,11 @@ df$d <- rescale01(df$d)
 
 Compared to the original, this code is easier to understand and we've eliminated one class of copy-and-paste errors. There is still quite a bit of duplication since we're doing the same thing to multiple columns. We'll learn how to eliminate that duplication in [iteration], once you've learned more about R's data structures in [vectors].
 
+相对于原来的代码，这段代码更清楚易懂，而且还消除了复制粘贴可能带来的错误。但这段代码中仍然有一些重复，因为我们对多个数据列进行了同样的操作。你将在[iteration]中学习如何消除这种重复，前提是你在[vectors]中学习了更多关于 R 数据结构的知识。
+
 Another advantage of functions is that if our requirements change, we only need to make the change in one place. For example, we might discover that some of our variables include infinite values, and `rescale01()` fails:
+
+函数的另一个优点是，如果需求发生变化，我们只需要在一处进行修改。例如，我们发现，如果有些变量中包括无限值，那么 rescale01() 函数就会出错：
 
 ```{r}
 x <- c(1:10, Inf)
@@ -118,6 +164,8 @@ rescale01(x)
 ```
 
 Because we've extracted the code into a function, we only need to make the fix in one place:
+
+因为已经将代码放在函数中了，所以我们只需要在函数中进行修改即可：
 
 ```{r}
 rescale01 <- function(x) {
@@ -129,18 +177,26 @@ rescale01(x)
 
 This is an important part of the "do not repeat yourself" (or DRY) principle. The more repetition you have in your code, the more places you need to remember to update when things change (and they always do!), and the more likely you are to create bugs over time.
 
-### Exercises
+这个示例非常好地体现了“不要重复自己”（do not repeat yourself，DRY）这一原则。代码中的重复部分越多，当事情发生变化时（这是必然的），你需要修改的地方就越多，随着时间的推移，代码中的隐患也会越来越多。
+
+### Exercises | 练习
 
 1.  Why is `TRUE` not a parameter to `rescale01()`? What would happen if
     `x` contained a single missing value, and `na.rm` was `FALSE`?
+    
+    为什么 TRUE 不是 rescale01() 函数的参数？如果x 中包含一个缺失值，而且 na.rm 的值是 FALSE，那么会发生什么情况？
 
 1.  In the second variant of `rescale01()`, infinite values are left
     unchanged. Rewrite `rescale01()` so that `-Inf` is mapped to 0, and 
     `Inf` is mapped to 1.
+    
+    在 rescale01() 函数的第二个版本中，无穷大值未作任何处理。重写 rescale01() 函数， 将 -Inf 映射为 0，Inf 映射为 1。
 
 1.  Practice turning the following code snippets into functions. Think about 
     what each function does. What would you call it? How many arguments does it
     need? Can you rewrite it to be more expressive or less duplicative?
+    
+    将下面的代码片段转换成函数。思考一下每个函数的作用，你应该为新函数选择什么样的名称？它需要几个参数？能否重写代码，让函数更清晰易懂，并减少重复的操作？
 
     ```{r, eval = FALSE}
     mean(is.na(x))
@@ -151,6 +207,8 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     ```
 
 1.  write your own functions to compute the variance and skewness of a numeric vector.
+
+参考 http://nicercode.github.io/intro/writing-functions.html，编写一个函数来计算数值向量的方差和偏度。
     Variance is defined as
     $$
     \mathrm{Var}(x) = \frac{1}{n - 1} \sum_{i=1}^n (x_i - \bar{x}) ^2 \text{,}
@@ -163,9 +221,13 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
 
 1.  Write `both_na()`, a function that takes two vectors of the same length 
     and returns the number of positions that have an `NA` in both vectors.
+    
+    编写一个名为 both_na() 的函数，它接受两个长度相同的向量，如果两个向量中同一位置的值都是 NA，则返回这样位置的数量。
 
 1.  What do the following functions do? Why are they useful even though they
     are so short?
+    
+    以下函数的功能是什么？尽管它们都很简短，但是用处都很大，为什么？
     
     ```{r}
     is_directory <- function(x) file.info(x)$isdir
@@ -176,44 +238,62 @@ This is an important part of the "do not repeat yourself" (or DRY) principle. Th
     to "Little Bunny Foo Foo". There's a lot of duplication in this song. 
     Extend the initial piping example to recreate the complete song, and use 
     functions to reduce the duplication.
+    
+    (1)	阅读“小兔福福”的完整歌词（可以查看维基百科上的 Little Bunny Foo Foo）。这首歌中有大量重复内容。扩展原来的管道操作示例来重新生成完整的歌谣，并使用函数来减少重复。
 
-## Functions are for humans and computers
+## Functions are for humans and computers | 人与计算机的函数
 
 It's important to remember that functions are not just for the computer, but are also for humans. R doesn't care what your function is called, or what comments it contains, but these are important for human readers. This section discusses some things that you should bear in mind when writing functions that humans can understand.
 
+一定要牢记一点，函数不只是面向计算机的，同时也是面向人的。R 并不在意函数的名称是什么，或者其中有多少注释，但是，这些对于人类读者来说都是非常重要的。本节将讨论编写函数时的一些注意事项，它们可以让函数更容易为人们所理解。
+
 The name of a function is important. Ideally, the name of your function will be short, but clearly evoke what the function does. That's hard! But it's better to be clear than short, as RStudio's autocomplete makes it easy to type long names.
+
+函数名是非常重要的。理想的函数名应该既简短，又能清楚地说明函数的作用。这很难做到！但清楚比简短更重要，因为 RStudio 中的自动完成功能可以使得长函数名更容易输入。
 
 Generally, function names should be verbs, and arguments should be nouns. There are some exceptions: nouns are ok if the function computes a very well known noun (i.e. `mean()` is better than `compute_mean()`), or accessing some property of an object (i.e. `coef()` is better than `get_coefficients()`). A good sign that a noun might be a better choice is if you're using a very broad verb like "get", "compute", "calculate", or "determine". Use your best judgement and don't be afraid to rename a function if you figure out a better name later.
 
+一般来说，函数名应该是动词，而参数名应该是名词。但也有例外：如果函数计算的是一个众所周知的名词（比如，mean() 要比 compute_mean() 好），或者读取的是对象的某种属性（比如，coef() 要比 get_coefficients() 好）时，那么函数名使用名词也是可以的。如果使用的是非常广义的动词，如 get、compute、calculate 或 determine，此时名词通常是更好的选择。尽量发挥你的判断力，如果发现更好的函数名称，那么就赶快改名吧，不要犹豫：
+
 ```{r, eval = FALSE}
 # Too short
+# 名称太短
 f()
 
 # Not a verb, or descriptive
+# 名称不是动词，或者没有描述力
 my_awesome_function()
 
 # Long, but clear
+# 名称虽然长，但是表达得很清楚
 impute_missing()
 collapse_years()
 ```
 
 If your function name is composed of multiple words, I recommend using "snake\_case", where each lowercase word is separated by an underscore. camelCase is a popular alternative. It doesn't really matter which one you pick, the important thing is to be consistent: pick one or the other and stick with it. R itself is not very consistent, but there's nothing you can do about that. Make sure you don't fall into the same trap by making your code as consistent as possible.
 
+如果你的函数名由多个单词组成，那么我们建议使用“snake_case”命名法，即使用小写单词，单词之间用下划线隔开。另一种常用的命名法是“camelCase”，即首个单词小写，其余单词首字母大写。其实选择哪种命名法并不重要，重要的是要保持一致，选择一种方法并坚持使用即可。R 本身就不太一致，但我们对此无能为力。为了避免重蹈覆辙，一定要尽量让自己的代码具有一致性：
+
 ```{r, eval = FALSE}
 # Never do this!
+# 千万别这样！
 col_mins <- function(x, y) {}
 rowMaxes <- function(y, x) {}
 ```
 
 If you have a family of functions that do similar things, make sure they have consistent names and arguments. Use a common prefix to indicate that they are connected. That's better than a common suffix because autocomplete allows you to type the prefix and see all the members of the family. 
 
+如果你有一族功能相似的函数，那么一定要确保它们具有一致的名称和参数。可以使用一个通用前缀来表明它们之间的联系，这种方式比使用通用后缀更好，因为如果 IDE 有自动完成功能，那么就可以在输入前缀后列举出这个函数族中的所有成员：
+
 ```{r, eval = FALSE}
 # Good
+# 良好的命名方式
 input_select()
 input_checkbox()
 input_text()
 
 # Not so good
+# 不太好的命名方式
 select_input()
 checkbox_input()
 text_input()
@@ -221,10 +301,15 @@ text_input()
 
 A good example of this design is the stringr package: if you don't remember exactly which function you need, you can type `str_` and jog your memory.
 
+stringr 包就是这种设计的一个优秀示例：如果没有确切地记住所需的函数名称，那么可以先输入 str_，然后就能唤起你失落的记忆了。
+
 Where possible, avoid overriding existing functions and variables. It's impossible to do in general because so many good names are already taken by other packages, but avoiding the most common names from base R will avoid confusion.
+
+应该尽可能避免覆盖现有的函数和变量。总体来说，完全不覆盖是不可能的，因为太多好名称已经被其他 R 包占用了，但完全可以不覆盖 R 基础包中最常用的名称，这样可以避免混淆：
 
 ```{r, eval = FALSE}
 # Don't do this!
+# 不要这样！
 T <- FALSE
 c <- 10
 mean <- function(x) sum(x)
@@ -232,24 +317,34 @@ mean <- function(x) sum(x)
 
 Use comments, lines starting with `#`, to explain the "why" of your code. You generally should avoid comments that explain the "what" or the "how". If you can't understand what the code does from reading it, you should think about how to rewrite it to be more clear. Do you need to add some intermediate variables with useful names? Do you need to break out a subcomponent of a large function so you can name it? However, your code can never capture the reasoning behind your decisions: why did you choose this approach instead of an alternative? What else did you try that didn't work? It's a great idea to capture that sort of thinking in a comment.
 
+你应该使用注释（即由 # 开头的行）来解释代码，需要解释的是“为什么”，一般不用解释“是什么”或“如何做”。如果通过阅读无法理解代码的行为，那么就应该考虑如何重写代码才能让它更清晰。是否应该添加一些名称有意义的中间变量？是否应该从一个较大的函数中分解出一部分代码，将其转换为一个有意义的函数？但是，代码永远不能表示出决策背后的思考过程：为什么我们选择这种方法，而不是另一种？如果这种方法不奏效， 那我们还能怎么做？在注释中表达这种思考过程是一种非常好的做法。
+
 Another important use of comments is to break up your file into easily readable chunks. Use long lines of `-` and `=` to make it easy to spot the breaks.
 
+注释的另一个重要作用是对代码进行分节，从而使其更易读。可以使用一长串 - 或 = 让代码各节之间的界限更加明显：
+
 ```{r, eval = FALSE}
+# 加载数据 
 # Load data --------------------------------------
 
+# 绘制数据
 # Plot data --------------------------------------
 ```
 
 RStudio provides a keyboard shortcut to create these headers (Cmd/Ctrl + Shift + R), and will display them in the code navigation drop-down at the bottom-left of the editor:
 
+RStudio 提供了键盘快捷方式来创建这种分节标记，即 Ctrl+Shift+R，并且可以在脚本编辑器左下角的代码浏览弹出菜单中显示这些标记：
+
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("screenshots/rstudio-nav.png")
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  Read the source code for each of the following three functions, puzzle out
     what they do, and then brainstorm better names.
+    
+    阅读以下 3 个函数的源代码，推测出它们的功能，然后使用头脑风暴给它们以更好的名称。
     
     ```{r}
     f1 <- function(string, prefix) {
@@ -266,28 +361,42 @@ knitr::include_graphics("screenshots/rstudio-nav.png")
     
 1.  Take a function that you've written recently and spend 5 minutes 
     brainstorming a better name for it and its arguments.
+    
+    找一个你最近编写的函数，然后花 5 分钟进行头脑风暴，给它及其参数一个更好的名称。
 
 1.  Compare and contrast `rnorm()` and `MASS::mvrnorm()`. How could you make
     them more consistent? 
     
+    比较并对比 rnorm() 和 MASS::mvrnorm() 函数，如何才能使得它们更加一致？
+    
 1.  Make a case for why `norm_r()`, `norm_d()` etc would be better than
     `rnorm()`, `dnorm()`. Make a case for the opposite.
+    
+    举例说明 norm_r()、norm_d() 等函数比 rnorm() 和 dnorm() 更具优势。再举一个反例说明它们的缺点。
 
-## Conditional execution
+## Conditional execution | 条件执行
 
 An `if` statement allows you to conditionally execute code. It looks like this:
+
+if 语句可以使得你有条件地执行代码。其形式如下所示：
 
 ```{r, eval = FALSE}
 if (condition) {
   # code executed when condition is TRUE
+  # 条件为真时执行的代码
 } else {
   # code executed when condition is FALSE
+  # 条件为假时执行的代码
 }
 ```
 
 To get help on `if` you need to surround it in backticks: `` ?`if` ``. The help isn't particularly helpful if you're not already an experienced programmer, but at least you know how to get to it!
 
+要想获得有关 if 语句的帮助，你需要使用反引号将其括起来：?`if`。如果不是熟练的程序员，那么这个帮助对你也没什么大用，但你至少应该知道如何获取这个帮助！
+
 Here's a simple function that uses an `if` statement. The goal of this function is to return a logical vector describing whether or not each element of a vector is named.
+
+下面是使用了 if 语句的一个简单函数。这个函数的目的是返回一个逻辑向量，用于描述一个向量的各个元素是否被命名：
 
 ```{r}
 has_name <- function(x) {
@@ -302,9 +411,13 @@ has_name <- function(x) {
 
 This function takes advantage of the standard return rule: a function returns the last value that it computed. Here that is either one of the two branches of the `if` statement.
 
-### Conditions
+这个函数利用了标准返回值原则，即函数返回其计算的最后一个值。这里是 if 语句的两个分支中的任意一个。
+
+### Conditions | 条件
 
 The `condition` must evaluate to either `TRUE` or `FALSE`. If it's a vector, you'll get a warning message; if it's an `NA`, you'll get an error. Watch out for these messages in your own code:
+
+condition 的值要么是 TRUE，要么是 FALSE。如果它是一个向量，那么你会收到一条警告； 如果它是 NA，那么程序就会出错。注意你自己代码中的这些消息：
 
 ```{r, error = TRUE}
 if (c(TRUE, FALSE)) {}
@@ -314,13 +427,18 @@ if (NA) {}
 
 You can use `||` (or) and `&&` (and) to combine multiple logical expressions. These operators are "short-circuiting": as soon as `||` sees the first `TRUE` it returns `TRUE` without computing anything else. As soon as `&&` sees the first `FALSE` it returns `FALSE`. You should never use `|` or `&` in an `if` statement: these are vectorised operations that apply to multiple values (that's why you use them in `filter()`). If you do have a logical vector, you can use `any()` or `all()` to collapse it to a single value.
 
+你可以使用 ||（或）和 &&（与）操作符来组合多个逻辑表达式。这些操作符具有“短路效应”：只要 || 遇到第一个 TRUE，那么就会返回 TRUE，不再计算其他表达式；只要 && 遇到第一个 FALSE，就会返回 FALSE，不再计算其他表达式。不能在 if 语句中使用 | 或 &，它们是向量化的操作符，只可以用于多个值（这就是我们在 filter() 函数中使用它们的原因）。如果一定要使用逻辑向量，那么你可以使用 any() 或 all() 函数将其转换为单个逻辑值。
+
 Be careful when testing for equality. `==` is vectorised, which means that it's easy to get more than one output.  Either check the length is already 1, collapse with `all()` or `any()`, or use the non-vectorised `identical()`. `identical()` is very strict: it always returns either a single `TRUE` or a single `FALSE`, and doesn't coerce types. This means that you need to be careful when comparing integers and doubles:
+
+在测试相等关系时，一定要小心，== 是向量化的，很容易输出多个值。你要么先检查结果的长度是否为 1， 然后使用 all() 或 any() 函数进行转换； 要么使用非向量化的identical() 函数。identical() 非常严格，总是返回一个 TRUE 或者一个 FALSE，并且不限制参数类型。这意味着，在比较整数和双精度数时，一定要注意：
 
 ```{r}
 identical(0L, 0)
 ```
 
 You also need to be wary of floating point numbers:
+你还需要提防浮点数的问题：
 
 ```{r}
 x <- sqrt(2) ^ 2
@@ -331,23 +449,30 @@ x - 2
 
 Instead use `dplyr::near()` for comparisons, as described in [comparisons].
 
+解决方式是使用 dplyr::near() 函数进行比较，我们在 3.2.1 节中介绍过这个函数。
+
 And remember, `x == NA` doesn't do anything useful!
+记住，x == NA 没有任何作用。
 
-### Multiple conditions
+### Multiple conditions | 多重条件
 
-You can chain multiple if statements together:
+You can chain multiple if statements together: 你可以将多个 if 语句串联起来：
 
 ```{r, eval = FALSE}
 if (this) {
   # do that
+  # 做一些操作
 } else if (that) {
   # do something else
+  # 做另外一些操作
 } else {
   # 
 }
 ```
 
 But if you end up with a very long series of chained `if` statements, you should consider rewriting. One useful technique is the `switch()` function. It allows you to evaluate selected code based on position or name.
+
+但如果你有一长串 if 语句，那么就要考虑重写了。重写的一种方法是使用 switch() 函数， 它先对第一个参数求值，然后按照名称或位置在后面的参数列表中匹配返回结果：
 
 ```{r, echo = FALSE}
 function(x, y, op) {
@@ -363,14 +488,21 @@ function(x, y, op) {
 
 Another useful function that can often eliminate long chains of `if` statements is `cut()`. It's used to discretise continuous variables.
 
-### Code style
+可以重写一长串 if 语句的另一个函数是 cut()，它可以将连续变量离散化。
+
+### Code style | 代码风格
 
 Both `if` and `function` should (almost) always be followed by squiggly brackets (`{}`), and the contents should be indented by two spaces. This makes it easier to see the hierarchy in your code by skimming the left-hand margin.
 
+if 和 function 后面总是要跟着一对大括号（{}），其中的内容应该缩进两个空格。这样通过左侧空白就可以很容易地知道代码层次。
+
 An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it's followed by `else`. Always indent the code inside curly braces.
+
+左大括号不应该自己占一行，而且后面要换行。右大括号应该自己占一行，除非后面跟着else。大括号中的代码一定要缩进：
 
 ```{r, eval = FALSE}
 # Good
+# 好
 if (y < 0 && debug) {
   message("Y is negative")
 }
@@ -382,6 +514,7 @@ if (y == 0) {
 }
 
 # Bad
+# 不好
 if (y < 0 && debug)
 message("Y is negative")
 
@@ -395,12 +528,16 @@ else {
 
 It's ok to drop the curly braces if you have a very short `if` statement that can fit on one line:
 
+如果 if 语句非常短，可以在一行内写下，那么可以不用大括号：
+
 ```{r}
 y <- 10
 x <- if (y < 20) "Too low" else "Too high"
 ```
 
 I recommend this only for very brief `if` statements. Otherwise, the full form is easier to read:
+
+我们建议只对特别短的 if 语句采用这种形式，其他情况下还是完整形式更易于阅读：
 
 ```{r}
 if (y < 20) {
@@ -410,15 +547,19 @@ if (y < 20) {
 }
 ```
 
-### Exercises
+### Exercises | 练习
 
 1.  What's the difference between `if` and `ifelse()`? Carefully read the help
     and construct three examples that illustrate the key differences.
+    
+    if 与 ifelse() 的区别是什么？仔细阅读帮助文档，然后构建 3 个示例，说明它们之间的关键区别。
 
 1.  Write a greeting function that says "good morning", "good afternoon",
     or "good evening", depending on the time of day. (Hint: use a time
     argument that defaults to `lubridate::now()`. That will make it 
     easier to test your function.)
+    
+    编写一个欢迎函数，根据每天的不同时间输出“上午好”“下午好”和“晚上好”。（提示：使用 lubridate::now() 函数默认的时间参数，这会使得函数测试更容易一些。）
 
 1.  Implement a `fizzbuzz` function. It takes a single number as input. If
     the number is divisible by three, it returns "fizz". If it's divisible by
@@ -426,7 +567,11 @@ if (y < 20) {
     "fizzbuzz". Otherwise, it returns the number. Make sure you first write 
     working code before you create the function.
     
+    实现 fizzbuzz 函数，接受一个数值作为输入。如果这个数值能被 3 整除，那么就返回“fizz”；如果能被 5 整除，就返回“buzz”；如果能同时被 3 和 5 整除，则返回“fizzbuzz”；否则，就返回这个数值。一定要先调试代码，再创建函数。
+    
 1.  How could you use `cut()` to simplify this set of nested if-else statements?
+
+如何使用 cut() 函数来简化以下这段嵌套 if-else 语句？
 
     ```{r, eval = FALSE}
     if (temp <= 0) {
@@ -445,10 +590,14 @@ if (y < 20) {
     How would you change the call to `cut()` if I'd used `<` instead of `<=`?
     What is the other chief advantage of `cut()` for this problem? (Hint:
     what happens if you have many values in `temp`?)
+    
+    如果以上代码中使用的是 <，不是 <=，那么应该如何修改 cut() 函数的调用方式？对于这个问题，cut() 函数的其他主要优点是什么？（提示：如果 temp 中有多个值，那么会出现什么情况？）
 
 1.  What happens if you use `switch()` with numeric values?
+如果 switch() 函数和数值一起使用，那么会是什么情况？
 
 1.  What does this `switch()` call do? What happens if `x` is "e"?
+(1)	以下 switch() 函数的作用是什么？如果 x 是 e，那么会出现什么情况？
 
     ```{r, eval = FALSE}
     switch(x, 
@@ -460,26 +609,36 @@ if (y < 20) {
     ```
     
     Experiment, then carefully read the documentation. 
+    进行实测，然后仔细阅读文档。
 
-## Function arguments
+## Function arguments | 函数参数
 
 The arguments to a function typically fall into two broad sets: one set supplies the __data__ to compute on, and the other supplies arguments that control the __details__ of the computation. For example:
 
+函数的参数通常分为两大类：一类提供需要进行计算的数据，另一类控制计算过程的细节。举例如下。
+
 * In `log()`, the data is `x`, and the detail is the `base` of the logarithm.
+•	在 log() 函数中，数据是 x，细节则是对数的底，即 base。
 
 * In `mean()`, the data is `x`, and the details are how much data to trim
   from the ends (`trim`) and how to handle missing values (`na.rm`).
+  •	在 mean() 函数中，数据是 x，细节则是从 x 前后两端（trim）移除多大比例的数据，以及如何处理缺失值（na.rm）。
 
 * In `t.test()`, the data are `x` and `y`, and the details of the test are
   `alternative`, `mu`, `paired`, `var.equal`, and `conf.level`.
+  •	在 t.test() 函数中，数据是 x 和 y，检验的细节则是 alternative、mu、paired、var. equal 以及 conf.level 等设置。
   
 * In `str_c()` you can supply any number of strings to `...`, and the details
   of the concatenation are controlled by `sep` and `collapse`.
+  •	在 str_c() 函数中，你可以向 ... 参数提供任意数量的字符串作为数据，连接的细节则由 sep 和 collapse 参数控制。
   
 Generally, data arguments should come first. Detail arguments should go on the end, and usually should have default values. You specify a default value in the same way you call a function with a named argument:
 
+通常情况下，数据参数应该放在最前面，细节参数则放在后面，而且一般都有默认值。设置默认值的方式与使用命名参数调用函数的方式是一样的：
+
 ```{r}
 # Compute confidence interval around mean using normal approximation
+# 使用近似正态分布计算均值两端的置信区间
 mean_ci <- function(x, conf = 0.95) {
   se <- sd(x) / sqrt(length(x))
   alpha <- 1 - conf
@@ -493,45 +652,63 @@ mean_ci(x, conf = 0.99)
 
 The default value should almost always be the most common value. The few exceptions to this rule are to do with safety. For example, it makes sense for `na.rm` to default to `FALSE` because missing values are important. Even though `na.rm = TRUE` is what you usually put in your code, it's a bad idea to silently ignore missing values by default.
 
+默认值应该几乎总是最常用的值。这种原则的例外情况非常少，除非出于安全考虑。例如，将 na.rm 的默认值设为 FALSE 是情有可原的，因为缺失值有时是非常重要的。虽然代码中经常使用的是 na.rm = TRUE，但是通过默认设置不声不响地忽略缺失值并不是一种良好的做法。
+
 When you call a function, you typically omit the names of the data arguments, because they are used so commonly. If you override the default value of a detail argument, you should use the full name:
+
+在调用函数时，我们经常省略数据参数的名称，因为其使用太普遍了。如果不想使用细节参数的默认值，那么你应该使用细节参数的完整名称：
 
 ```{r, eval = FALSE}
 # Good
+# 好
 mean(1:10, na.rm = TRUE)
 
 # Bad
+# 不好
 mean(x = 1:10, , FALSE)
 mean(, TRUE, x = c(1:10, NA))
 ```
 
 You can refer to an argument by its unique prefix (e.g. `mean(x, n = TRUE)`), but this is generally best avoided given the possibilities for confusion.
 
+如果一个参数名称的前几个字母可以唯一标识这个参数，那么你可以通过这些字母来引用这个参数，如 mean(x, n = TRUE)。但是，通常要在不会引起混淆的情况下才能这样做。
+
 Notice that when you call a function, you should place a space around `=` in function calls, and always put a space after a comma, not before (just like in regular English). Using whitespace makes it easier to skim the function for the important components.
+
+注意，在调用函数时，应该在其中 = 的两端都加一个空格。逗号后面应该总是加一个空格， 逗号前面则不要加空格（与英文写法相同）。使用空格可以使得函数的重要部分更易读：
 
 ```{r, eval = FALSE}
 # Good
+# 好
 average <- mean(feet / 12 + inches, na.rm = TRUE)
 
 # Bad
+# 不好
 average<-mean(feet/12+inches,na.rm=TRUE)
 ```
 
-### Choosing names
+### Choosing names | 选择参数名称
 
 The names of the arguments are also important. R doesn't care, but the readers of your code (including future-you!) will. Generally you should prefer longer, more descriptive names, but there are a handful of very common, very short names. It's worth memorising these:
 
-* `x`, `y`, `z`: vectors.
-* `w`: a vector of weights.
-* `df`: a data frame.
-* `i`, `j`: numeric indices (typically rows and columns).
-* `n`: length, or number of rows.
-* `p`: number of columns.
+参数名称也很重要。R 并不在乎参数名称，但代码的读者（包括未来的你）不能不在乎！ 通常应该选择那些较长的、更具描述性的名称，但R 中有一些非常短的通用名称，你应该记住它们。
+
+* `x`, `y`, `z`: vectors 向量.
+* `w`: a vector of weights 权重向量.
+* `df`: a data frame 数据框.
+* `i`, `j`: numeric indices (typically rows and columns) 数值索引（通常用于表示行和列）.
+* `n`: length, or number of rows 长度或行的数量.
+* `p`: number of columns 列的数量.
 
 Otherwise, consider matching names of arguments in existing R functions. For example, use `na.rm` to determine if missing values should be removed.
 
-### Checking values
+除此之外，你还可以考虑使用现有R 函数中的参数名称。例如，使用 na.rm 来确定是否需要除去缺失值。
+
+### Checking values | 检查参数值
 
 As you start to write more functions, you'll eventually get to the point where you don't remember exactly how your function works. At this point it's easy to call your function with invalid inputs. To avoid this problem, it's often useful to make constraints explicit. For example, imagine you've written some functions for computing weighted summary statistics:
+
+当编写的函数越来越多时，你有时会记不清某个函数到底是用来做什么的。这时就很容易使用无效的参数来调用函数。为了解决这种问题，应该对函数参数进行明确的限制。例如，假设你已经编写了一些函数来计算加权摘要统计量：
 
 ```{r}
 wt_mean <- function(x, w) {
@@ -546,7 +723,7 @@ wt_sd <- function(x, w) {
 }
 ```
 
-What happens if `x` and `w` are not the same length?
+What happens if `x` and `w` are not the same length? 如果 x 和 w 的长度不一样，那么会发生什么情况？
 
 ```{r}
 wt_mean(1:6, 1:3)
@@ -554,7 +731,11 @@ wt_mean(1:6, 1:3)
 
 In this case, because of R's vector recycling rules, we don't get an error. 
 
+这种情况下，由于 R 的向量循环机制，代码不会出错。
+
 It's good practice to check important preconditions, and throw an error (with `stop()`), if they are not true:
+
+对重要的前提条件进行检查，当其不为真时就抛出一个错误（使用 stop() 函数），这是一种非常好的做法：
 
 ```{r}
 wt_mean <- function(x, w) {
@@ -566,6 +747,8 @@ wt_mean <- function(x, w) {
 ```
 
 Be careful not to take this too far. There's a tradeoff between how much time you spend making your function robust, versus how long you spend writing it. For example, if you also added a `na.rm` argument, I probably wouldn't check it carefully:
+
+当心，别做得太过头。你应该权衡在编写函数上要花费的时间与让函数更健壮要花费的时间。例如，如果你还需要添加一个 na.rm 参数，那么我们大概不会检查得如此仔细：
 
 ```{r}
 wt_mean <- function(x, w, na.rm = FALSE) {
@@ -590,6 +773,8 @@ wt_mean <- function(x, w, na.rm = FALSE) {
 
 This is a lot of extra work for little additional gain. A useful compromise is the built-in `stopifnot()`: it checks that each argument is `TRUE`, and produces a generic error message if not.
 
+这就有点事倍功半，得不偿失了。比较好的一个折中方案是使用内置的 stopifnot() 函数， 它会检查每个参数是否为真，如果某个参数不为真，则生成一条通用的错误消息：
+
 ```{r, error = TRUE}
 wt_mean <- function(x, w, na.rm = FALSE) {
   stopifnot(is.logical(na.rm), length(na.rm) == 1)
@@ -607,9 +792,12 @@ wt_mean(1:6, 6:1, na.rm = "foo")
 
 Note that when using `stopifnot()` you assert what should be true rather than checking for what might be wrong.
 
-### Dot-dot-dot (...)
+注意，如果使用了 stopifnot() 函数，那么你实际上是断言了哪些参数必须为真，而不是检查哪些参数可能是错的。
+
+### Dot-dot-dot (...) | 点点点（...）
 
 Many functions in R take an arbitrary number of inputs:
+R 中的很多函数可以接受任意数量的输入：
 
 ```{r}
 sum(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -618,7 +806,11 @@ stringr::str_c("a", "b", "c", "d", "e", "f")
 
 How do these functions work? They rely on a special argument: `...` (pronounced dot-dot-dot). This special argument captures any number of arguments that aren't otherwise matched. 
 
+这种函数是如何运行的呢？它们需要一个特殊参数：...（读作点点点）。这个特殊参数会捕获任意数量的未匹配参数。
+
 It's useful because you can then send those `...` on to another function. This is a useful catch-all if your function primarily wraps another function. For example, I commonly create these helper functions that wrap around `str_c()`:
+
+这个参数的作用非常大，因为你可以将它捕获的值传给另一个函数。如果你的函数是另一个函数的包装器，那么这种一网打尽的方式就非常有用了。例如，我们经常用以下方式创建辅助函数来包装 str_c() 函数：
 
 ```{r}
 commas <- function(...) stringr::str_c(..., collapse = ", ")
@@ -634,6 +826,8 @@ rule("Important output")
 
 Here `...` lets me forward on any arguments that I don't want to deal with to `str_c()`. It's a very convenient technique. But it does come at a price: any misspelled arguments will not raise an error. This makes it easy for typos to go unnoticed:
 
+这里 ... 可以将我们不想处理的所有参数传递给 str_c()。虽然非常方便，但这种技术是有代价的：所有拼写错误的参数都不会引发错误消息。这使得我们很难发现输入错误：
+
 ```{r}
 x <- c(1, 2)
 sum(x, na.mr = TRUE)
@@ -641,35 +835,49 @@ sum(x, na.mr = TRUE)
 
 If you just want to capture the values of the `...`, use `list(...)`.
 
-### Lazy evaluation
+如果想要检查 ... 中的值，那么你可以使用 list(...)。
+
+### Lazy evaluation | 惰性求值
 
 Arguments in R are lazily evaluated: they're not computed until they're needed. That means if they're never used, they're never called. This is an important property of R as a programming language, but is generally not important when you're writing your own functions for data analysis. You can read more about lazy evaluation at <http://adv-r.had.co.nz/Functions.html#lazy-evaluation>.
 
-### Exercises
+R 中的参数求值的方式是惰性的，即直到需要参数时才会进行求值。这意味着，如果没有使用参数，那么它就一直没有实际值。这是R 作为编程语言的一个重要特性，但在编写函数进行数据分析时，这个特性一般是不重要的。如果想要了解惰性求值的更多知识，参考http://adv-r.had.co.nz/Functions.html#lazy-evaluation。
+
+### Exercises | 练习
 
 1.  What does `commas(letters, collapse = "-")` do? Why?
+函数调用 commas(letters, collapse = "-") 的作用是什么？为什么？
 
 1.  It'd be nice if you could supply multiple characters to the `pad` argument, 
     e.g. `rule("Title", pad = "-+")`. Why doesn't this currently work? How 
     could you fix it?
     
+    如果能为 pad 参数提供多个字符，那真是太好了，例如 rule("Title", pad = "-+")。为什么现在的 rule() 函数还做不到这一点？应该如何改进？
+    
 1.  What does the `trim` argument to `mean()` do? When might you use it?
+mean() 函数中的 trim 参数的作用是什么？何时应该使用这个参数？
 
 1.  The default value for the `method` argument to `cor()` is 
     `c("pearson", "kendall", "spearman")`. What does that mean? What 
     value is used by default?
+    
+    cor() 函数的参数 method 的默认值是 c("pearson", "kendall", "spearman")，这个默认值的意义是什么？默认情况下会使用哪个值？
 
-## Return values
+## Return values | 返回值
 
 Figuring out what your function should return is usually straightforward: it's why you created the function in the first place! There are two things you should consider when returning a value: 
 
-1. Does returning early make your function easier to read? 
+弄清楚函数要返回什么结果通常是非常简单的一件事：其实就是当初创建这个函数的原因！对于返回值，以下两个问题需要你仔细思考。
 
-2. Can you make your function pipeable?
+1. Does returning early make your function easier to read?  提前返回能否让函数更易读？
 
-### Explicit return statements
+2. Can you make your function pipeable? 你能使得自己的函数支持管道操作吗？
+
+### Explicit return statements |  显式返回语句
 
 The value returned by the function is usually the last statement it evaluates, but you can choose to return early by using `return()`. I think it's best to save the use of `return()` to signal that you can return early with a simpler solution. A common reason to do this is because the inputs are empty:
+
+函数的返回值通常是最后一个语句的值，但你可以通过 return() 语句提前返回一个值。我们认为最好有节制地使用 return() 语句，因为提前返回的一般都是比较简单的情况。常见的提前返回原因就是输入为空：
 
 ```{r}
 complicated_function <- function(x, y, z) {
@@ -678,11 +886,14 @@ complicated_function <- function(x, y, z) {
   }
     
   # Complicated code here
+  # 这里是复杂的代码
 }
 
 ```
 
 Another reason is because you have a `if` statement with one complex block and one simple block. For example, you might write an if statement like this:
+
+需要提前返回的另一个原因是，if 语句的一个分支非常复杂，而另一个分支则特别简单。例如，你可能写出如下的 if 语句：
 
 ```{r, eval = FALSE}
 f <- function() {
@@ -695,13 +906,24 @@ f <- function() {
     # lines
     # to
     # express
+    # 需要
+    # 多行
+    # 代码
+    # 才能
+    # 完成
+    # 的
+    # 操作
   } else {
     # return something short
+    # 返回一个非常简单的值
+    
   }
 }
 ```
 
 But if the first block is very long, by the time you get to the `else`, you've forgotten the `condition`. One way to rewrite it is to use an early return for the simple case:
+
+但如果第一个分支中的代码非常长，到达 else 语句前，你可能就已经记不清 condition 了。解决这个问题的一种方法是将简单情形提前返回：
 
 ```{r, eval = FALSE}
 
@@ -718,16 +940,31 @@ f <- function() {
   # lines
   # to
   # express
+  # 需要
+  # 多行
+  # 代码
+  # 才能
+  # 完成
+  # 的
+  # 操作
 }
 ```
 
 This tends to make the code easier to understand, because you don't need quite so much context to understand it.
 
-### Writing pipeable functions
+这样应该会使得代码更容易理解，因为不需要太多的上下文。
+
+### Writing pipeable functions | 使得函数支持管道
 
 If you want to write your own pipeable functions, it's important to think about the return value. Knowing the return value's object type will mean that your pipeline will "just work". For example, with dplyr and tidyr the object type is the data frame. 
 
+如果想要让自己的函数支持管道操作，那么你应该仔细思考一下返回值。
+
 There are two basic types of pipeable functions: transformations and side-effects. With __transformations__, an object is passed to the function's first argument and a modified object is returned. With __side-effects__, the passed object is not transformed. Instead, the function performs an action on the object, like drawing a plot or saving a file. Side-effects functions should "invisibly" return the first argument, so that while they're not printed they can still be used in a pipeline. For example, this simple function prints the number of missing values in a data frame:
+
+可以支持管道操作的函数有两种主要类型：转换函数与副作用函数。
+转换函数会传入一个明确的“基本”对象作为第一个参数，对这个对象进行处理后，再将其返回。例如，在 dplyr 中，这个关键的对象就是数据框。如果能够确定在自己的领域内应该使用哪种数据类型，那么你就可以让自己的函数支持管道操作了。
+副作用函数经常用来执行某种行为，比如绘图或保存文件，而不是转换对象。这些函数会“悄悄地”返回第一个参数，因此，默认情况下，第一个参数不显示在输出中，但仍然可以由管道操作使用。例如，以下这个简单函数会输出一个数据框中的缺失值的数量：
 
 ```{r}
 show_missings <- function(df) {
@@ -740,11 +977,15 @@ show_missings <- function(df) {
 
 If we call it interactively, the `invisible()` means that the input `df` doesn't get printed out:
 
+如果以交互式方式调用，那么 invisible() 函数的作用就是使得输入参数 df 不显示在输出中：
+
 ```{r}
 show_missings(mtcars)
 ```
 
 But it's still there, it's just not printed by default:
+
+但是 df 确实是在输出中的，只是默认不显示：
 
 ```{r}
 x <- show_missings(mtcars) 
@@ -753,6 +994,7 @@ dim(x)
 ```
 
 And we can still use it in a pipe:
+而且我们还可以在管道中使用它：
 
 ```{r, include = FALSE}
 library(dplyr)
@@ -764,9 +1006,11 @@ mtcars %>%
   show_missings() 
 ```
 
-## Environment
+## Environment | 环境
 
 The last component of a function is its environment. This is not something you need to understand deeply when you first start writing functions. However, it's important to know a little bit about environments because they are crucial to how functions work. The environment of a function controls how R finds the value associated with a name. For example, take this function:
+
+本章的最后内容是函数的环境。当刚开始编写函数时，不需要对环境有多深入的理解。但我们还是应该了解一些关于环境的知识，因为这些知识对于理解函数如何运行非常重要。函数的环境决定了 R 如何寻找对象的值。例如，查看以下函数：
 
 ```{r}
 f <- function(x) {
@@ -775,6 +1019,8 @@ f <- function(x) {
 ```
 
 In many programming languages, this would be an error, because `y` is not defined inside the function. In R, this is valid code because R uses rules called __lexical scoping__ to find the value associated with a name. Since `y` is not defined inside the function, R will look in the __environment__ where the function was defined:
+
+在很多编程语言中，这段代码会引发一个错误，因为函数没有定义 y。这种代码在 R 中是有效的，因为 R 使用称为词法定界的一种规则来搜索对象的值。因为 y 没有在函数中进行定义，所以 R 会在定义函数的环境中寻找 y：
 
 ```{r}
 y <- 100
@@ -786,7 +1032,11 @@ f(10)
 
 This behaviour seems like a recipe for bugs, and indeed you should avoid creating functions like this deliberately, but by and large it doesn't cause too many problems (especially if you regularly restart R to get to a clean slate). 
 
+这种方式似乎是解决程序 bug 的一个秘诀，但实际上最好不要故意写出这种函数。总体来说，这种代码不会引起太多问题（特别是为了得到干净的环境而经常重新启动 R 时）。
+
 The advantage of this behaviour is that from a language standpoint it allows R to be very consistent. Every name is looked up using the same set of rules. For `f()` that includes the behaviour of two things that you might not expect: `{` and `+`. This allows you to do devious things like:
+
+从编程语言的角度来看，这种方式的优点是可以使得 R 非常一致，因为使用同样的规则来搜索所有对象。对于函数 f()，你可以通过函数定义让 { 和 + 具有一些出人意料的行为， 比如以下这个恶作剧：
 
 ```{r}
 `+` <- function(x, y) {
@@ -801,3 +1051,5 @@ rm(`+`)
 ```
 
 This is a common phenomenon in R. R places few limits on your power. You can do many things that you can't do in other programming languages. You can do many things that 99% of the time are extremely ill-advised (like overriding how addition works!). But this power and flexibility is what makes tools like ggplot2 and dplyr possible. Learning how to make best use of this flexibility is beyond the scope of this book, but you can read about in [_Advanced R_](http://adv-r.had.co.nz).
+
+这种重定义在R 中是很普遍的一种现象。R 很少对编程能力进行限制，你可以做很多其他语言中无法进行的事情，甚至是 99% 的人都认为极不明智的那些事情（比如重定义加法运算）。但是，正是这种能力和灵活性才使得 ggplot2 和 dplyr 工具开发成为可能。如何充分利用这种灵活性已经超出了本书范围，如果想要学习这方面的知识，可以参考 Advanced R。s

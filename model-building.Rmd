@@ -1,14 +1,22 @@
-# Model building
+# Model building | 模型构建
 
-## Introduction
+## Introduction | 简介
 
 In the previous chapter you learned how linear models work, and learned some basic tools for understanding what a model is telling you about your data. The previous chapter focussed on simulated datasets. This chapter will focus on real data, showing you how you can progressively build up a model to aid your understanding of the data.
 
+我们在上一章中学习了线性模型的工作原理，还学习了一些基本工具来理解模型如何帮助我们解释数据。上一章主要使用模拟数据集来帮助我们学习模型是如何工作的。本章则关注真实数据，介绍如何循序渐进地建立模型以帮助我们理解数据。
+
 We will take advantage of the fact that you can think about a model partitioning your data into pattern and residuals. We'll find patterns with visualisation, then make them concrete and precise with a model. We'll then repeat the process, but replace the old response variable with the residuals from the model. The goal is to transition from implicit knowledge in the data and your head to explicit knowledge in a quantitative model. This makes it easier to apply to new domains, and easier for others to use. 
+
+我们将利用这样一个共识：模型可以将数据分成模式与残差这两个部分。我们会先利用数据可视化找出模式，然后通过模型更加具体而精确地提取出模式。之后会重复这一过程， 只是将原来的响应变量替换为模型的残差。我们的目标是将数据与头脑中的隐式知识转换为量化模型中的显式知识。这样更容易将知识应用于新的领域，也更容易为他人所使用。
 
 For very large and complex datasets this will be a lot of work. There are certainly alternative approaches - a more machine learning approach is simply to focus on the predictive ability of the model. These approaches tend to produce black boxes: the model does a really good job at generating predictions, but you don't know why. This is a totally reasonable approach, but it does make it hard to apply your real world knowledge to the model. That, in turn, makes it difficult to assess whether or not the model will continue to work in the long-term, as fundamentals change. For most real models, I'd expect you to use some combination of this approach and a more classic automated approach.
 
+对于特别大和特别复杂的数据集，这将是一项繁重的工作。当然还有其他方法，即重点在于模型预测能力的机器学习方法。这些方法往往会产生黑盒效应：模型的预测效果非常好，但你无法解释。这些方法确实很合理，但很难将你的实际知识应用于模型。因此，从长期来看，如果基本情况发生了变化，我们就很难确定模型是否还会奏效。对于多数实际模型，我们希望你能将这种方法和一些更经典的自动化方法结合起来使用。
+
 It's a challenge to know when to stop. You need to figure out when your model is good enough, and when additional investment is unlikely to pay off. I particularly like this quote from reddit user Broseidon241: 
+
+适可而止是很困难的。你应该知道模型什么时候是恰到好处的，什么时候是画蛇添足、过犹不及的。我们非常欣赏 reddit 用户 Broseidon241 说的以下这段话。
 
 > A long time ago in art class, my teacher told me "An artist needs to know 
 > when a piece is done. You can't tweak something into perfection - wrap it up. 
@@ -17,11 +25,14 @@ It's a challenge to know when to stop. You need to figure out when your model is
 > works hard to correct those mistakes. A great seamstress isn't afraid to 
 > throw out the garment and start over."
 > 
+> 很久之前的艺术课上，老师告诉我：“艺术家应该知道何时完成作品。如果不能做得更好，那就结束它。如果不喜欢它，那就从头再来。否则，就去做别的事情吧。”在后来的生活中，我还听到了这句话：“坏裁缝会犯很多错误，好裁缝会努力纠正错误，而优秀的裁缝则从来不怕将有问题的衣服扔掉，重新开始。”
 > -- Broseidon241, <https://www.reddit.com/r/datascience/comments/4irajq>
 
-### Prerequisites
+### Prerequisites | 准备工作
 
 We'll use the same tools as in the previous chapter, but add in some real datasets: `diamonds` from ggplot2, and `flights` from nycflights13.  We'll also need lubridate in order to work with the date/times in `flights`.
+
+我们使用的工具与上一章中的相同，但要加入几个实际数据集：ggplot2 包中的 diamonds 和 nycflights13 包中的 flights。我们还需要 lubridate 包，以处理 flights 数据集中的日期和时间数据。
 
 ```{r setup, message = FALSE}
 library(tidyverse)
@@ -32,9 +43,11 @@ library(nycflights13)
 library(lubridate)
 ```
 
-## Why are low quality diamonds more expensive? {#diamond-prices}
+## Why are low quality diamonds more expensive? | 为什么质量差的钻石更贵 {#diamond-prices}
 
 In previous chapters we've seen a surprising relationship between the quality of diamonds and their price: low quality diamonds (poor cuts, bad colours, and inferior clarity) have higher prices.
+
+在前面的章节中，我们已经发现了钻石质量与价格间这种令人惊讶的关系：质量差的钻石（切工差、颜色差、纯净度低）具有更高的价格：
 
 ```{r dev = "png"}
 ggplot(diamonds, aes(cut, price)) + geom_boxplot()
@@ -44,9 +57,13 @@ ggplot(diamonds, aes(clarity, price)) + geom_boxplot()
 
 Note that the worst diamond color is J (slightly yellow), and the worst clarity is I1 (inclusions visible to the naked eye).
 
-### Price and carat
+注意，最差的钻石颜色是 J（微黄），最差的纯净度是 I1（肉眼可见内含物）。
+
+### Price and carat | 价格与重量
 
 It looks like lower quality diamonds have higher prices because there is an important confounding variable: the weight (`carat`) of the diamond. The weight of the diamond is the single most important factor for determining the price of the diamond, and lower quality diamonds tend to be larger.
+
+质量差的钻石似乎价格更高，造成这一现象的原因是一个重要的混淆变量：钻石的重量（carat）。重量是确定钻石价格的单一因素中最重要的一个，而质量差的钻石往往更重一些：
 
 ```{r}
 ggplot(diamonds, aes(carat, price)) + 
@@ -55,8 +72,12 @@ ggplot(diamonds, aes(carat, price)) +
 
 We can make it easier to see how the other attributes of a diamond affect its relative `price` by fitting a model to separate out the effect of `carat`. But first, lets make a couple of tweaks to the diamonds dataset to make it easier to work with:
 
-1. Focus on diamonds smaller than 2.5 carats (99.7% of the data)
+通过拟合一个模型来分离出 carat 变量的作用，我们可以更容易看到钻石的其他特性对price 的影响。但是，我们需要先对钻石数据集进行一些调整，以便其更容易处理。
+
+1. Focus on diamonds smaller than 2.5 carats (99.7% of the data) 
+重点关注小于 2.5 克拉的那些钻石（全部数据的 99.7%）。
 1. Log-transform the carat and price variables.
+对重量和价格变量进行对数转换。
 
 ```{r}
 diamonds2 <- diamonds %>% 
@@ -66,6 +87,8 @@ diamonds2 <- diamonds %>%
 
 Together, these changes make it easier to see the relationship between `carat` and `price`:
 
+这两个调整可以让我们更轻松地看到 carat 和 price 之间的关系：
+
 ```{r}
 ggplot(diamonds2, aes(lcarat, lprice)) + 
   geom_hex(bins = 50)
@@ -73,11 +96,15 @@ ggplot(diamonds2, aes(lcarat, lprice)) +
 
 The log-transformation is particularly useful here because it makes the pattern linear, and linear patterns are the easiest to work with. Let's take the next step and remove that strong linear pattern. We first make the pattern explicit by fitting a model:
 
+对数转换在这个示例中非常有用，因为它可以让模式变为线性的，而线性模式是最容易处理的。现在我们进行下一步，从数据中去除这种强烈的线性模式。我们通过拟合一个模型让这种模式成为显式的：
+
 ```{r}
 mod_diamond <- lm(lprice ~ lcarat, data = diamonds2)
 ```
 
 Then we look at what the model tells us about the data. Note that I back transform the predictions, undoing the log transformation, so I can overlay the predictions on the raw data:
+
+接着我们检查模型，看看它能够反映出数据中的哪些信息。注意，因为我们对预测值进行了反向变换，还原了对数转换，所以可以将预测值覆盖在原始数据上：
 
 ```{r}
 grid <- diamonds2 %>% 
@@ -93,7 +120,11 @@ ggplot(diamonds2, aes(carat, price)) +
 
 That tells us something interesting about our data. If we believe our model, then the large diamonds are much cheaper than expected. This is probably because no diamond in this dataset costs more than $19,000.
 
+这张图可以告诉我们关于这份数据的一些有趣信息。如果我们相信这个模型，那么大钻石要比预料中便宜得多。这可能是因为数据集中没有价格超过 $19 000 的钻石。
+
 Now we can look at the residuals, which verifies that we've successfully removed the strong linear pattern:
+
+现在我们可以检查一下残差，它可以用来验证我们是否成功移除了强烈的线性模式：
 
 ```{r}
 diamonds2 <- diamonds2 %>% 
@@ -105,6 +136,8 @@ ggplot(diamonds2, aes(lcarat, lresid)) +
 
 Importantly, we can now re-do our motivating plots using those residuals instead of `price`. 
 
+重要的是，我们现在可以使用残差代替 price 来重新绘图了：
+
 ```{r dev = "png"}
 ggplot(diamonds2, aes(cut, lresid)) + geom_boxplot()
 ggplot(diamonds2, aes(color, lresid)) + geom_boxplot()
@@ -113,15 +146,21 @@ ggplot(diamonds2, aes(clarity, lresid)) + geom_boxplot()
 
 Now we see the relationship we expect: as the quality of the diamond increases, so too does its relative price. To interpret the `y` axis, we need to think about what the residuals are telling us, and what scale they are on. A residual of -1 indicates that `lprice` was 1 unit lower than a prediction based solely on its weight. $2^{-1}$ is 1/2, points with a value of -1 are half the expected price, and residuals with value 1 are twice the predicted price.
 
-### A more complicated model
+现在我们可以看到期望中的关系了：当钻石的质量下降时，其相应价格也随之下降。为了解释 y 轴，我们需要思考一下残差的意义及其使用的标度。残差为 1 表示 lprice 比仅使用重量进行估计的预测值少一个单位。21 就是 1/2，因此值为 1 的点的价格为预计价格的一半，残差为 1 时，价格则是预计价格的 2 倍。
+
+### A more complicated model | 一个更复杂的模型
 
 If we wanted to, we could continue to build up our model, moving the effects we've observed into the model to make them explicit. For example, we could include `color`, `cut`, and `clarity` into the model so that we also make explicit the effect of these three categorical variables:
+
+如果愿意的话，我们可以继续构建模型，用模型明确表示观察到的效果。例如，我们可以在模型中包括 color、cut 和 clarity 变量，以将这 3 个分类变量的效果明确表示出来：
 
 ```{r}
 mod_diamond2 <- lm(lprice ~ lcarat + color + cut + clarity, data = diamonds2)
 ```
 
 This model now includes four predictors, so it's getting harder to visualise. Fortunately, they're currently all independent which means that we can plot them individually in four plots. To make the process a little easier, we're going to use the `.model` argument to `data_grid`:
+
+现在模型中包括了 4 个预测变量，因此更加难以进行可视化。好在这些变量还是彼此独立的，这意味着我们可以在 4 张图中分别绘制出它们。为了让这个过程更简单一些，我们在data_grid() 函数中使用 .model 参数：
 
 ```{r}
 grid <- diamonds2 %>% 
@@ -135,6 +174,8 @@ ggplot(grid, aes(cut, pred)) +
 
 If the model needs variables that you haven't explicitly supplied, `data_grid()` will automatically fill them in with "typical" value. For continuous variables, it uses the median, and categorical variables it uses the most common value (or values, if there's a tie).
 
+如果模型需要你还没有明确提供的变量，data_grid() 函数会自动使用“典型”值来填充它们。对于连续变量，模型使用中位数；对于分类变量，模型使用最常见的值（或多个值，如果有同样数量的多个值的话）：
+
 ```{r}
 diamonds2 <- diamonds2 %>% 
   add_residuals(mod_diamond2, "lresid2")
@@ -144,6 +185,8 @@ ggplot(diamonds2, aes(lcarat, lresid2)) +
 ```
 
 This plot indicates that there are some diamonds with quite large residuals - remember a residual of 2 indicates that the diamond is 4x the price that we expected. It's often useful to look at unusual values individually:
+
+这张图说明一些钻石有非常大的残差。记住，残差为 2 表示钻石的价格是预计价格的 4 倍。通常还应该检查一下异常值：
 
 ```{r}
 diamonds2 %>% 
@@ -156,25 +199,37 @@ diamonds2 %>%
 
 Nothing really jumps out at me here, but it's probably worth spending time considering if this indicates a problem with our model, or if there are errors in the data. If there are mistakes in the data, this could be an opportunity to buy diamonds that have been priced low incorrectly.
 
-### Exercises
+这个结果没什么大价值，但或许我们可以花点时间思考一下出现异常值是因为模型有问题，还是数据中有错误。如果是数据中的错误，那么我们就有机会买到那些错误定了低价的钻石。
+
+### Exercises | 练习
 
 1.  In the plot of `lcarat` vs. `lprice`, there are some bright vertical
     strips. What do they represent?
+    
+    lcarat 和 lprice 的关系图中有一些垂直的亮条。它们表示什么？
 
 1.  If `log(price) = a_0 + a_1 * log(carat)`, what does that say about 
     the relationship between `price` and `carat`?
     
+    如果 log(price) = a_0 + a_1 * log(carat)，这能反映出 price 和 carat 间的何种关系？
+    
 1.  Extract the diamonds that have very high and very low residuals. 
     Is there anything unusual about these diamonds? Are they particularly bad
     or good, or do you think these are pricing errors?
+    
+    提取残差特别大和特别小的钻石数据，这些钻石有什么特异之处？它们是特别好、特别差，还是定价错误？
 
 1.  Does the final model, `mod_diamond2`, do a good job of predicting
     diamond prices? Would you trust it to tell you how much to spend
     if you were buying a diamond?
+    
+    最终模型 mod_diamonds2 是预测钻石价格的优秀模型吗？如果想要买钻石，你会信任它给出的价格吗？
 
-## What affects the number of daily flights?
+## What affects the number of daily flights? | 哪些因素影响了每日航班数量
 
 Let's work through a similar process for a dataset that seems even simpler at first glance: the number of flights that leave NYC per day. This is a really small dataset --- only 365 rows and 2 columns --- and we're not going to end up with a fully realised model, but as you'll see, the steps along the way will help us better understand the data. Let's get started by counting the number of flights per day and visualising it with ggplot2.
+
+我们使用同样的流程来处理乍看上去更为简单的一个数据集：每天从纽约市出发的航班数量。这是一个相当小的数据集，只有 365 行和 2 列，而且我们也不准备充分实现最终模型。但正如你将看到的，实现模型的一系列步骤会帮助我们更加透彻地理解数据。首先， 我们需要计算每天出发的航班数量，并使用 ggplot2 进行可视化：
 
 ```{r}
 daily <- flights %>% 
@@ -187,9 +242,11 @@ ggplot(daily, aes(date, n)) +
   geom_line()
 ```
 
-### Day of week
+### Day of week | 一周中的每一天
 
 Understanding the long-term trend is challenging because there's a very strong day-of-week effect that dominates the subtler patterns. Let's start by looking at the distribution of flight numbers by day-of-week:
+
+理解长期趋势是非常困难的，因为数据中存在着强烈的周内效应，它严重影响了数据中的微妙模式。我们先检查一下航班数量在一周中的每一天的分布：
 
 ```{r}
 daily <- daily %>% 
@@ -200,7 +257,11 @@ ggplot(daily, aes(wday, n)) +
 
 There are fewer flights on weekends because most travel is for business. The effect is particularly pronounced on Saturday: you might sometimes leave on Sunday for a Monday morning meeting, but it's very rare that you'd leave on Saturday as you'd much rather be at home with your family.
 
+周末的航班数量更少，因为多数行程都是公务出差。这种效应在星期六体现的更加明显： 有时为了星期一的会议，人们或许会在星期日出发，但很少有人会在星期六出发，因为这天我们更愿意留在家里陪伴家人。
+
 One way to remove this strong pattern is to use a model. First, we fit the model, and display its predictions overlaid on the original data:
+
+去除这种强烈模式的一种方法是使用模型。首先，我们拟合这个模型，并将预测值覆盖在原始数据上：
 
 ```{r}
 mod <- lm(n ~ wday, data = daily)
@@ -216,6 +277,8 @@ ggplot(daily, aes(wday, n)) +
 
 Next we compute and visualise the residuals:
 
+然后计算残差，并对其进行可视化表示：
+
 ```{r}
 daily <- daily %>% 
   add_residuals(mod)
@@ -227,9 +290,13 @@ daily %>%
 
 Note the change in the y-axis: now we are seeing the deviation from the expected number of flights, given the day of week. This plot is useful because now that we've removed much of the large day-of-week effect, we can see some of the subtler patterns that remain:
 
+注意 y 轴的变化：现在它表示的是每天的航班数量与给定一周中某一天预期航班数量间的偏差。这张图是非常有用的，因为它去除了大部分周内效应，我们可以从剩余的信息中看出一些微妙的模式。
+
 1.  Our model seems to fail starting in June: you can still see a strong 
     regular pattern that our model hasn't captured. Drawing a plot with one 
     line for each day of the week makes the cause easier to see:
+    
+    • 我们的模型似乎从 6 月份开始失效了：你可以看到，此时数据中仍然存在一种强烈的、有规律的模式，这是我们没有捕获到的。我们再绘制一张图，将一周中的每一天都用一条折线表示出来，这样可以看得更清楚一些：
 
     ```{r}
     ggplot(daily, aes(date, resid, colour = wday)) + 
@@ -241,8 +308,11 @@ Note the change in the y-axis: now we are seeing the deviation from the expected
     during summer there are more flights than we expect, and during Fall there 
     are fewer. We'll see how we can do better to capture this pattern in the
     next section.
+    
+    我们的模型没有精确地预测出星期六的航班数量：夏季的实际航班数量比我们预计的要多，秋季则比我们预计的要少。下一节将介绍如何更好地捕获这种模式。
 
 1.  There are some days with far fewer flights than expected:
+• 有几天的航班数量远远少于预期：
 
     ```{r}
     daily %>% 
@@ -254,8 +324,12 @@ Note the change in the y-axis: now we are seeing the deviation from the expected
     seem to correspond to public holidays. You'll work on those in one 
     of the exercises.
     
+    如果非常熟悉美国的公共假期，那么你就会发现这些日期中包括新年、7 月 4 日、感恩节和圣诞节。还有一些其他日期没有对应的公共假期，我们会在后面的练习中继续讨论这些日期。
+    
 1.  There seems to be some smoother long term trend over the course of a year.
     We can highlight that trend with `geom_smooth()`:
+    
+    • 从整年来看，似乎有某种更平滑的长期趋势。我们可以使用 geom_smooth() 函数来高亮显示这种趋势：
 
     ```{r}
     daily %>% 
@@ -269,10 +343,14 @@ Note the change in the y-axis: now we are seeing the deviation from the expected
     (May-Sep). We can't do much with this pattern quantitatively, because we 
     only have a single year of data. But we can use our domain knowledge to 
     brainstorm potential explanations.
+    
+    可以看出，1 月（和 12 月）的航班比较少，而夏季（5~9 月）的航班比较多。不能对这种模式进行更多量化处理，因为我们只有一年的数据。但是，我们可以使用领域知识尽情地想象各种可能的解释。
 
-### Seasonal Saturday effect
+### Seasonal Saturday effect | 季节性星期六效应
 
 Let's first tackle our failure to accurately predict the number of flights on Saturday. A good place to start is to go back to the raw numbers, focussing on Saturdays:
+
+我们先解决未能精确预测星期六航班数量的问题。先回到原始数据，关注星期六的航班状况，这不失为一种良好的做法：
 
 ```{r}
 daily %>% 
@@ -285,11 +363,19 @@ daily %>%
 
 (I've used both points and lines to make it more clear what is data and what is interpolation.)
 
+（我们同时使用了点和折线，这样可以更清楚地表示哪些是数据，哪些是插值。）
+
 I suspect this pattern is caused by summer holidays: many people go on holiday in the summer, and people don't mind travelling on Saturdays for vacation. Looking at this plot, we might guess that summer holidays are from early June to late August. That seems to line up fairly well with the [state's school terms](http://schools.nyc.gov/Calendar/2013-2014+School+Year+Calendars.htm): summer break in 2013 was Jun 26--Sep 9. 
+
+我们怀疑这种模式是由暑假造成的：很多人夏季出去度假，而假期中的人们是不介意在星期六出行的。根据这张图，我们可以猜想暑假是从 6 月初到 8 月末，这个时间与美国的学校假期非常吻合：2013 年的暑假是从 6 月 26 日至 9 月 9 日。
 
 Why are there more Saturday flights in the Spring than the Fall? I asked some American friends and they suggested that it's less common to plan family vacations during the Fall because of the big Thanksgiving and Christmas holidays. We don't have the data to know for sure, but it seems like a plausible working hypothesis.
 
+为什么春季的星期六航班比秋季多？我们询问了一些美国朋友，他们认为之所以较少在秋季安排全家度假，是因为还有很长的感恩节和圣诞节假期。虽然没有数据证明这种说法的真实性，但这似乎是个还算合理的解释。
+
 Lets create a "term" variable that roughly captures the three school terms, and check our work with a plot:
+
+我们创建一个“学期”变量来粗略地表示学校的 3 个学期，然后使用图形检查一下这样做的效果：
 
 ```{r}
 term <- function(date) {
@@ -312,7 +398,10 @@ daily %>%
 
 (I manually tweaked the dates to get nice breaks in the plot. Using a visualisation to help you understand what your function is doing is a really powerful and general technique.)
 
+（为了让图形中的间隔更美观，我们手动调整了日期。使用可视化图形可以帮助我们理解函数的作用，这确实是一种强大又通用的技术。）
+
 It's useful to see how this new variable affects the other days of the week:
+还应该查看这个新变量是如何影响一周中其他各天的：
 
 ```{r}
 daily %>% 
@@ -321,6 +410,8 @@ daily %>%
 ```
 
 It looks like there is significant variation across the terms, so fitting a separate day of week effect for each term is reasonable. This improves our model, but not as much as we might hope:
+
+看上去不同学期间的差别还是非常大的，因此应该拟合去除了每学期周内效应的模型。这样可以改进模型，但效果只是差强人意：
 
 ```{r}
 mod1 <- lm(n ~ wday, data = daily)
@@ -333,6 +424,8 @@ daily %>%
 ```
 
 We can see the problem by overlaying the predictions from the model on to the raw data:
+
+将模型预测值覆盖在原始数据上，我们就可以看出问题所在：
 
 ```{r}
 grid <- daily %>% 
@@ -347,6 +440,8 @@ ggplot(daily, aes(wday, n)) +
 
 Our model is finding the _mean_ effect, but we have a lot of big outliers, so mean tends to be far away from the typical value. We can alleviate this problem by using a model that is robust to the effect of outliers: `MASS::rlm()`. This greatly reduces the impact of the outliers on our estimates, and gives a model that does a good job of removing the day of week pattern:
 
+模型寻找的是平均效应，但我们的数据中有大量数值很大的离群点，因此平均趋势与典型值之间的差别比较大。如果想要改善这个问题， 可以使用对离群点健壮的模型： MASS::rlm()。这个函数可以大大减轻离群点对模型估计的影响，并给出很好地消除了周内效应的一个模型：
+
 ```{r, warn = FALSE}
 mod3 <- MASS::rlm(n ~ wday * term, data = daily)
 
@@ -359,10 +454,15 @@ daily %>%
 
 It's now much easier to see the long-term trend, and the positive and negative outliers.
 
+现在更容易看出长期趋势，以及正负离群点了。
 
-### Computed variables
+
+### Computed variables | 计算出的变量
 
 If you're experimenting with many models and many visualisations, it's a good idea to bundle the creation of variables up into a function so there's no chance of accidentally applying a different transformation in different places. For example, we could write:
+
+如果正在试验多个模型和多种可视化方法，那么你可以将创建变量的所有代码打包放在一个函数中。这是一种非常好的做法，可以防止由于意外而在不同的地方执行了不同的转换。例如，我们可以使用以下代码：
+
 
 ```{r}
 compute_vars <- function(data) {
@@ -376,6 +476,8 @@ compute_vars <- function(data) {
 
 Another option is to put the transformations directly in the model formula:
 
+另一种方法是直接在模型公式中进行转换：
+
 ```{r}
 wday2 <- function(x) wday(x, label = TRUE)
 mod3 <- lm(n ~ wday2(date) * term(date), data = daily)
@@ -383,9 +485,13 @@ mod3 <- lm(n ~ wday2(date) * term(date), data = daily)
 
 Either approach is reasonable. Making the transformed variable explicit is useful if you want to check your work, or use them in a visualisation. But you can't easily use transformations (like splines) that return multiple columns. Including the transformations in the model function makes life a little easier when you're working with many different datasets because the model is self contained.
 
-### Time of year: an alternative approach
+每种方法都有其合理性。如果想对工作进行检查，或者想对工作结果进行可视化表示，那么你就应该明确表示变量转换。谨慎使用返回多个列的那些转换（比如样条法）。如果正在处理多个不同的数据集，那么将转换放在模型公式中可以使得工作更容易一些，因为这时的模型是自成一体的。
+
+### Time of year: an alternative approach | 年度时间：另一种方法
 
 In the previous section we used our domain knowledge (how the US school term affects travel) to improve the model. An alternative to using our knowledge explicitly in the model is to give the data more room to speak. We could use a more flexible model and allow that to capture the pattern we're interested in. A simple linear trend isn't adequate, so we could try using a natural spline to fit a smooth curve across the year:
+
+我们在前面使用了领域知识（美国学校学期对旅行的影响）改进模型。改进模型的另一种方法是赋予数据更多的发言权。可以使用一种更灵活的模型来捕获我们所关注的模式。简单的线性趋势已经无法满足我们的需要了，我们试着使用自然样条法拟合一个年度平滑曲线模型：
 
 ```{r}
 library(splines)
@@ -401,15 +507,20 @@ daily %>%
 
 We see a strong pattern in the numbers of Saturday flights. This is reassuring, because we also saw that pattern in the raw data. It's a good sign when you get the same signal from different approaches.
 
+我们可以在星期六航班数量中看到一种强烈的模式。这很令人欣慰，因为也可以在原始数据中看到这种模式。通过不同方法得到同样的信号，是一种很好的迹象。
 
-### Exercises
+### Exercises | 练习
 
 1.  Use your Google sleuthing skills to brainstorm why there were fewer than
     expected flights on Jan 20, May 26, and Sep 1. (Hint: they all have the
     same explanation.) How would these days generalise to another year?
+    
+    通过你的搜索技能进行头脑风暴，解释为什么 1 月 20 日、5 月 26 日和 9 月 1 日的航班数量比预计的要少。（提示：它们的解释相同。）如何能够将这些日期推广到另一个年度？
 
 1.  What do the three days with high positive residuals represent?
     How would these days generalise to another year?
+    
+    以下具有最大正残差的 3 个日期代表什么？如何能够将这些日期推广到另一个年度？
 
     ```{r}
     daily %>% 
@@ -421,32 +532,48 @@ We see a strong pattern in the numbers of Saturday flights. This is reassuring, 
     `Sat-spring`, `Sat-fall`. How does this model compare with the model with 
     every combination of `wday` and `term`?
     
+    创建一个新变量将 wday 变量划分为几个学期，但仅对星期六执行这个操作。也就是说， 可以保留 Thurs、Fri 等值，但要将星期六拆分为 Sat-summer、Sat-spring 和 Sat-fall。使用这种方法拟合出的模型与使用 wday 和 term 的所有组合拟合出的模型有什么不同？
+    
 1.  Create a new `wday` variable that combines the day of week, term 
     (for Saturdays), and public holidays. What do the residuals of 
     that model look like?
+    
+    创建一个新的 wday 变量，将一周 7 天、（星期六的）学期因素和公共假期组合起来，对于这个新变量拟合出的模型，其残差是怎样的？
 
 1.  What happens if you fit a day of week effect that varies by month 
     (i.e. `n ~ wday * month`)? Why is this not very helpful? 
+    
+    如果在考虑月份的情况下拟合周内效应（即 n ~ wday * month），那么会是什么情况？为什么这种模型用处不大？
 
 1.  What would you expect the model `n ~ wday + ns(date, 5)` to look like?
     Knowing what you know about the data, why would you expect it to be
     not particularly effective?
+    
+    你觉得 n ~ wday + ns(date, 5) 这个模型的效果会怎么样？基于对数据的理解，为什么你会觉得这个模型不会特别有效？
 
 1.  We hypothesised that people leaving on Sundays are more likely to be 
     business travellers who need to be somewhere on Monday. Explore that 
     hypothesis by seeing how it breaks down based on distance and time: if 
     it's true, you'd expect to see more Sunday evening flights to places that 
     are far away.
+    
+    我们进行了这样一个假设：星期日出发的人们多数都是出差，需要在星期一到达某个地方。仔细研究一下这个假设，看看如何基于航班时间与距离来证明这个假设是错误的： 如果这个假设正确，那么数据中就应该有更多在星期日晚上出发的远途航班。
 
 1.  It's a little frustrating that Sunday and Saturday are on separate ends
     of the plot. Write a small function to set the levels of the 
     factor so that the week starts on Monday.
+    
+    在前面的图形中，星期日和星期六分别处于图形的两端，这样给人的感觉不太好。编写一个小函数，重新设置因子水平，以便一周从星期一开始。
 
-## Learning more about models
+## Learning more about models | 学习更多模型知识
 
 We have only scratched the absolute surface of modelling, but you have hopefully gained some simple, but general-purpose tools that you can use to improve your own data analyses. It's OK to start simple! As you've seen, even very simple models can make a dramatic difference in your ability to tease out interactions between variables.
 
+本章只是对建模进行了一点蜻蜓点水式的介绍，但我们确实希望你能从中获取一些简单而又通用的技能，以提高自己的数据分析水平。千里之行，始于足下！如你所见，即使是非常简单的模型，如果有能力使用不同方法来处理变量，那么也会得到差异非常大的结果。
+
 These modelling chapters are even more opinionated than the rest of the book. I approach modelling from a somewhat different perspective to most others, and there is relatively little space devoted to it. Modelling really deserves a book on its own, so I'd highly recommend that you read at least one of these three books:
+
+与本书其他部分相比，关于建模内容的这部分更多地掺杂了个人观点。我们从与大多数人不同的角度来构建模型，而且本书留给建模的篇幅确实有些少。其实需要一本专门的著作来介绍建模，因此，我们强烈建议你至少阅读以下三本书中的一本。
 
 * *Statistical Modeling: A Fresh Approach* by Danny Kaplan,
   <http://project-mosaic-books.com/?page_id=13>. This book provides 
@@ -454,6 +581,8 @@ These modelling chapters are even more opinionated than the rest of the book. I 
   mathematical tools, and R skills in parallel. The book replaces a traditional
   "introduction to statistics" course, providing a curriculum that is up-to-date 
   and relevant to data science.
+  
+  •	Statistical Modeling: A Fresh Approach，Danny Kaplan 著。这本书既对建模进行了简单明了的介绍，也可以帮助你建立直觉、掌握数学工具和 R 语言技能。这本书不是那种传统的“统计学入门”教材，而是提供了与数据科学相关的最新内容。
 
 * *An Introduction to Statistical Learning* by Gareth James, Daniela Witten, 
   Trevor Hastie, and Robert Tibshirani, <http://www-bcf.usc.edu/~gareth/ISL/> 
@@ -463,8 +592,12 @@ These modelling chapters are even more opinionated than the rest of the book. I 
   *Elements of Statistical Learning* by Trevor Hastie, Robert Tibshirani, and
   Jerome Friedman, <https://web.stanford.edu/~hastie/Papers/ESLII.pdf> (also
   available online for free).
+  
+  •	An Introduction to Statistical Learning，Gareth James、Daniela Witten、Trevor Hastie 及Robert Tibshirani 著（有免费的在线版）。这本书介绍了称为“统计学习”的一整套现代建模技术。如果想要加深对模型的数学理解，可以阅读 Trevor Hastie、Robert Tibshirani 和 Jerome Friedman 的经典著作 Elements of Statistical Learning（有免费的在线版）。
 
 * *Applied Predictive Modeling* by Max Kuhn and Kjell Johnson, 
   <http://appliedpredictivemodeling.com>. This book is a companion to the 
   __caret__ package and provides practical tools for dealing with real-life
   predictive modelling challenges.
+  
+  •	Applied Predictive Modeling，Max Kuhn 及 Kjell Johnson 著。这本书是对 caret 包的重要补充，提供了多种实用工具，可以帮助你解决实际工作的预测性建模难题。

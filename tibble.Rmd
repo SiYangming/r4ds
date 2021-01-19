@@ -1,28 +1,38 @@
-# Tibbles
+# Tibbles | 使用tibble实现简单数据框
 
-## Introduction
+## Introduction | 简介
 
 Throughout this book we work with "tibbles" instead of R's traditional `data.frame`. Tibbles _are_ data frames, but they tweak some older behaviours to make life a little easier. R is an old language, and some things that were useful 10 or 20 years ago now get in your way. It's difficult to change base R without breaking existing code, so most innovation occurs in packages. Here we will describe the __tibble__ package, which provides opinionated data frames that make working in the tidyverse a little easier. In most places, I'll use the term tibble and data frame interchangeably; when I want to draw particular attention to R's built-in data frame, I'll call them `data.frame`s. 
 
+本书使用 tibble 代替传统的R 数据框。tibble 是一种简单数据框，它对传统数据框的功能进行了一些修改，以便更易于使用。R 是一门古老的语言，其中有些功能在 10 年或 20 年前是适用的，但现在已经过时。在不破坏现有代码的前提下，很难修改R 的基础功能，因此多数革新都是以扩展包的方式出现的。本章会介绍 tibble 包，其所提供的简单数据框更易于在 tidyverse 中使用。多数情况下，我们会交替使用 tibble 和数据框这两个术语；如果想要特别强调 R 内置的传统数据框，我们会使用 data.frame 来表示。
+
 If this chapter leaves you wanting to learn more about tibbles, you might enjoy `vignette("tibble")`.
 
-### Prerequisites
+如果读完本章后你还想学习有关 tibble 的更多知识，可以使用 vignette("tibble") 命令。
+
+### Prerequisites | 准备工作
 
 In this chapter we'll explore the __tibble__ package, part of the core tidyverse.
+
+我们将在本章中介绍 tidyverse 的核心 R 包之一——tibble 包。
 
 ```{r setup, message = FALSE}
 library(tidyverse)
 ```
 
-## Creating tibbles
+## Creating tibbles | 创建tibble
 
 Almost all of the functions that you'll use in this book produce tibbles, as tibbles are one of the unifying features of the tidyverse. Most other R packages use regular data frames, so you might want to coerce a data frame to a tibble. You can do that with `as_tibble()`:
+
+本书中使用的所有函数几乎都可以创建 tibble，因为 tibble 是 tidyverse 的标准功能之一。由于多数其他 R 包使用的是标准数据框，因此你可能想要将数据框转换为 tibble。可以使用 as_tibble() 函数来完成转换：
 
 ```{r}
 as_tibble(iris)
 ```
 
 You can create a new tibble from individual vectors with `tibble()`. `tibble()` will automatically recycle inputs of length 1, and allows you to refer to variables that you just created, as shown below.
+
+可以通过 tibble() 函数使用一个向量来创建新 tibble。tibble() 会自动重复长度为 1 的输入，并可以使用刚刚创建的新变量，如下所示：
 
 ```{r}
 tibble(
@@ -34,7 +44,11 @@ tibble(
 
 If you're already familiar with `data.frame()`, note that `tibble()` does much less: it never changes the type of the inputs (e.g. it never converts strings to factors!), it never changes the names of variables, and it never creates row names.
 
+如果你已经非常熟悉 data.frame() 函数，那么请注意 tibble() 函数的功能要少得多：它不能改变输入的类型（例如，不能将字符串转换为因子）、变量的名称，也不能创建行名称。
+
 It's possible for a tibble to have column names that are not valid R variable names, aka __non-syntactic__ names. For example, they might not start with a letter, or they might contain unusual characters like a space. To refer to these variables, you need to surround them with backticks, `` ` ``:
+
+可以在 tibble 中使用在 R 中无效的变量名称（即不符合语法的名称）作为列名称。例如， 列名称可以不以字母开头，也可以包含特殊字符（如空格）。要想引用这样的变量，需要使用反引号 ` 将它们括起来：
 
 ```{r}
 tb <- tibble(
@@ -47,7 +61,11 @@ tb
 
 You'll also need the backticks when working with these variables in other packages, like ggplot2, dplyr, and tidyr.
 
+如果要在 ggplot2 和 dplyr 等其他 R 包中使用这些变量，也需要使用反引号。
+
 Another way to create a tibble is with `tribble()`, short for **tr**ansposed tibble.  `tribble()` is customised for data entry in code: column headings are defined by formulas (i.e. they start with `~`), and entries are separated by commas. This makes it possible to lay out small amounts of data in easy to read form.
+
+创建 tibble 的另一种方法是使用 tribble() 函数，tribble 是 transposed tibble（转置 tibble） 的缩写。tribble() 是定制化的，可以对数据按行进行编码：列标题由公式（以 ~ 开头） 定义，数据条目以逗号分隔，这样就可以用易读的方式对少量数据进行布局：
 
 ```{r}
 tribble(
@@ -60,13 +78,19 @@ tribble(
 
 I often add a comment (the line starting with `#`), to make it really clear where the header is.
 
-## Tibbles vs. data.frame
+我通常会加一条注释（以 # 开头的行）来明确指出标题行的位置。
+
+## Tibbles vs. data.frame |  对比tibble与data.frame
 
 There are two main differences in the usage of a tibble vs. a classic `data.frame`: printing and subsetting.
 
-### Printing
+tibble 和传统 data.frame 的使用方法主要有两处不同：打印和取子集。
+
+### Printing | 打印
 
 Tibbles have a refined print method that shows only the first 10 rows, and all the columns that fit on screen. This makes it much easier to work with large data. In addition to its name, each column reports its type, a nice feature borrowed from `str()`:
+
+tibble 的打印方法进行了优化，只显示前 10 行结果，并且列也是适合屏幕的，这种方式非常适合大数据集。除了打印列名，tibble 还会打印出列的类型，这项非常棒的功能借鉴于str() 函数。
 
 ```{r}
 tibble(
@@ -80,7 +104,13 @@ tibble(
 
 Tibbles are designed so that you don't accidentally overwhelm your console when you print large data frames. But sometimes you need more output than the default display. There are a few options that can help.
 
+在打印大数据框时，tibble 的这种设计避免了输出占满整个控制台。但有时需要比默认显示更多的输出，这时就要设置几个选项。
+
 First, you can explicitly `print()` the data frame and control the number of rows (`n`) and the `width` of the display. `width = Inf` will display all columns:
+
+首先，可以明确使用 print() 函数来打印数据框，并控制打印的行数（n）和显示的宽度
+（width）。width = Inf 可以显示出所有列：
+
 
 ```{r, eval = FALSE}
 nycflights13::flights %>% 
@@ -89,25 +119,38 @@ nycflights13::flights %>%
 
 You can also control the default print behaviour by setting options:
 
+还可以通过设置以下选项来控制默认的打印方式。
+
 * `options(tibble.print_max = n, tibble.print_min = m)`: if more than `n`
   rows, print only `m` rows. Use `options(tibble.print_min = Inf)` to always
   show all rows.
+  
+  如果多于 m 行，则只打印出 n
+行。options(tibble.print_min = Inf) 表示总是打印所有行。
+
 
 * Use `options(tibble.width = Inf)` to always print all columns, regardless
   of the width of the screen.
+  表示总是打印所有列，不考虑屏幕的宽度。
 
 You can see a complete list of options by looking at the package help with `package?tibble`.
 
+可以使用 package?tibble 命令调出这个包的帮助文件，查看全部的选项列表。
+
 A final option is to use RStudio's built-in data viewer to get a scrollable view of the complete dataset. This is also often useful at the end of a long chain of manipulations.
+
+最后一种方式是使用 RStudio 内置的数据查看器，以滚动方式查看整个数据集。进行一长串数据处理操作后，经常会使用这种查看方式：
 
 ```{r, eval = FALSE}
 nycflights13::flights %>% 
   View()
 ```
 
-### Subsetting
+### Subsetting | 取子集
 
 So far all the tools you've learned have worked with complete data frames. If you want to pull out a single variable, you need some new tools, `$` and `[[`. `[[` can extract by name or position; `$` only extracts by name but is a little less typing.
+
+迄今为止，你学到的所有工具都是作用于整个数据框。如果想要提取单个变量，那么就需要一些新工具，如 $ 和 [[。[[ 可以按名称或位置提取变量；$ 只能按名称提取变量，但可以减少一些输入：
 
 ```{r}
 df <- tibble(
@@ -116,14 +159,18 @@ df <- tibble(
 )
 
 # Extract by name
+# 按名称提取
 df$x
 df[["x"]]
 
 # Extract by position
+# 按位置提取
 df[[1]]
 ```
 
 To use these in a pipe, you'll need to use the special placeholder `.`:
+
+要想在管道中使用这些提取操作，需要使用特殊的占位符 .：
 
 ```{r}
 df %>% .$x
@@ -132,9 +179,16 @@ df %>% .[["x"]]
 
 Compared to a `data.frame`, tibbles are more strict: they never do partial matching, and they will generate a warning if the column you are trying to access does not exist.
 
-## Interacting with older code
+
+与 data.frame 相比，tibble 更严格：它不能进行部分匹配，如果想要访问的列不存在，它会生成一条警告信息。
+
+
+## Interacting with older code | 与旧代码进行交互
 
 Some older functions don't work with tibbles. If you encounter one of these functions, use `as.data.frame()` to turn a tibble back to a `data.frame`:
+
+有些比较旧的函数不支持 tibble。如果遇到这种函数，可以使用 as.data.frame() 函数将
+tibble 转换回 data.frame：
 
 ```{r}
 class(as.data.frame(tb))
@@ -142,14 +196,20 @@ class(as.data.frame(tb))
 
 The main reason that some older functions don't work with tibble is the `[` function.  We don't use `[` much in this book because `dplyr::filter()` and `dplyr::select()` allow you to solve the same problems with clearer code (but you will learn a little about it in [vector subsetting](#vector-subsetting)). With base R data frames, `[` sometimes returns a data frame, and sometimes returns a vector. With tibbles, `[` always returns another tibble.
 
-## Exercises
+有些旧函数不支持 tibble 的主要原因在于 [ 的功能。本书没有使用太多的 [，因为
+dplyr::filter() 和 dplyr::select() 可以通过更加清晰的代码解决同样的问题（你可以在向量取子集中学到 [ 的一些使用方法）。对于 R 基础包中的数据框，[ 有时返回一个数据框， 有时返回一个向量。对于 tibble，[ 则总是返回另一个 tibble。
+
+## Exercises | 练习
 
 1.  How can you tell if an object is a tibble? (Hint: try printing `mtcars`,
     which is a regular data frame). 
+    如何识别一个对象是否为 tibble ？（提示：尝试打印出标准数据框 mtcars。）
 
 1.  Compare and contrast the following operations on a `data.frame` and 
     equivalent tibble. What is different? Why might the default data frame
     behaviours cause you frustration?
+    
+    对比在 data.frame 和等价的 tibble 上进行的以下操作。有何区别？为什么默认的数据框操作会让人感到沮丧？
     
     ```{r, eval = FALSE}
     df <- data.frame(abc = 1, xyz = "a")
@@ -160,16 +220,19 @@ The main reason that some older functions don't work with tibble is the `[` func
 
 1.  If you have the name of a variable stored in an object, e.g. `var <- "mpg"`,
     how can you extract the reference variable from a tibble?
+    
+    如果将一个变量的名称保存在一个对象中，如 var <- "mpg"，如何从 tibble 中提取出这个变量？
 
 1.  Practice referring to non-syntactic names in the following data frame by:
+(1)	在以下的数据框中练习如何引用不符合语法规则的变量名。
 
-    1.  Extracting the variable called `1`.
+    1.  Extracting the variable called `1`. 提取名称为 1 的变量。
 
-    1.  Plotting a scatterplot of `1` vs `2`.
+    1.  Plotting a scatterplot of `1` vs `2`. 绘制表示变量 1 和变量 2 关系的散点图。
 
-    1.  Creating a new column called `3` which is `2` divided by `1`.
+    1.  Creating a new column called `3` which is `2` divided by `1`. 创建一个名称为 3 的新列，其值为列 2 除以列 1。
         
-    1.  Renaming the columns to `one`, `two` and `three`. 
+    1.  Renaming the columns to `one`, `two` and `three`. 将这些列重新命名为 one、two 和 three。
     
     ```{r}
     annoying <- tibble(
@@ -178,7 +241,9 @@ The main reason that some older functions don't work with tibble is the `[` func
     )
     ```
 
-1.  What does `tibble::enframe()` do? When might you use it?
+1.  What does `tibble::enframe()` do? When might you use it? tibble::enframe() 函数的功能是什么？什么时候可以使用这个函数？
 
 1.  What option controls how many additional column names are printed
     at the footer of a tibble?
+    
+    哪个选项控制在 tibble 底部打印的额外列名称的数量？
